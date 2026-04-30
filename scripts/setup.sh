@@ -146,7 +146,7 @@ if [[ "$DEV" == "true" ]]; then
 fi
 
 # ── Ensure dist/ exists ──────────────────────────────────────────────────────
-if [[ "$BUILD" == "true" ]] || [[ ! -d "$APP_DIR/dist" ]]; then
+if [[ "$BUILD" == "true" ]] || [[ ! -f "$APP_DIR/dist/server/server/index.js" ]]; then
   echo "→ Building Tempo…"
   pnpm run build
   echo "✓ Build complete."
@@ -165,7 +165,13 @@ cleanup() {
 trap cleanup INT TERM
 
 # ── Start Fastify API server ──────────────────────────────────────────────────
-echo "→ Starting API server on port $API_PORT…"
+# Kill any leftover process already bound to the API port
+if lsof -ti tcp:"$API_PORT" >/dev/null 2>&1; then
+  echo "→ Releasing port $API_PORT (previous instance still running)…"
+  lsof -ti tcp:"$API_PORT" | xargs kill 2>/dev/null || true
+  sleep 0.5
+fi
+echo "→ Starting API server on port $API_PORT..."
 node "$APP_DIR/dist/server/server/index.js" &
 API_PID=$!
 
@@ -186,7 +192,7 @@ for i in $(seq 1 25); do
 done
 
 # ── Start Vite preview (serves dist/ + proxies /api → Fastify) ───────────────
-echo "→ Starting UI preview on http://localhost:$UI_PORT…"
+echo "→ Starting UI preview on http://localhost:$UI_PORT..."
 pnpm exec vite preview --port "$UI_PORT" --host 127.0.0.1 >/dev/null 2>&1 &
 UI_PID=$!
 sleep 1
