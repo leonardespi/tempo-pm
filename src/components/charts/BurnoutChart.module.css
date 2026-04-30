@@ -1,0 +1,232 @@
+/* ── Wrapper ── */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 24px 24px;
+  box-sizing: border-box;
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.legendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legendHint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
+/* ── Scrollable chart ── */
+.chartScroll {
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 8px;
+}
+
+/* ── SVG text ── */
+.headLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--color-text-muted);
+}
+
+.rowLabel {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  fill: var(--color-text);
+}
+
+/* ── Cells ── */
+.cell {
+  cursor: pointer;
+  transition: stroke-width 0.1s;
+}
+.cell:hover {
+  fill-opacity: 1 !important;
+}
+
+.cellEmpty {
+  cursor: default;
+}
+
+.cellLabel {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  fill: #fff;
+}
+
+/* ── Drill-down panel ── */
+.drillDown {
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border);
+  padding: 14px 0 16px;
+}
+
+.drillHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.drillDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.drillName {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.drillWeek {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.drillBadge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.drillCapacity {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.drillClose {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 7px;
+  font-family: var(--font-body);
+}
+.drillClose:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+/* ── Drill-down table ── */
+.drillTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.drillTable th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: 0 10px 6px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.drillTable td {
+  padding: 7px 10px 7px 0;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.drillTable tr:last-child td {
+  border-bottom: none;
+}
+
+.drillCrumb {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.drillCrumb span {
+  opacity: 0.5;
+  margin: 0 2px;
+}
+
+.drillEff {
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+/* ── Status badge (matches TimelineChart convention) ── */
+.statusBadge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.statusBadge[data-status='done'] {
+  background: rgba(74, 222, 128, 0.15);
+  color: #2e7d52;
+}
+.statusBadge[data-status='in_progress'] {
+  background: rgba(59, 130, 246, 0.15);
+  color: #1d4ed8;
+}
+.statusBadge[data-status='blocked'] {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+.statusBadge[data-status='not_started'] {
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+}
+
+/* ── Empty state ── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 6px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 40px;
+}
+
+.emptyHint {
+  font-size: 13px;
+  max-width: 340px;
+}

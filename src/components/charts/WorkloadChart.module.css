@@ -1,0 +1,166 @@
+/* ── Wrapper ── */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 12px;
+  padding: 16px 24px 0;
+  box-sizing: border-box;
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Scrollable chart area ── */
+.chartScroll {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  padding-bottom: 8px;
+}
+
+/* ── SVG text styles ── */
+.yLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--color-text-muted);
+}
+
+.axisTitle {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.xLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--color-text-muted);
+}
+
+/* ── Hover target ── */
+.hoverTarget {
+  cursor: pointer;
+}
+
+/* ── Tooltip ── */
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  min-width: 160px;
+  max-width: 240px;
+}
+
+.tooltipHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tooltipDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tooltipHeader strong {
+  font-size: 13px;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.tooltipWeek {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.tooltipTotal {
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  color: var(--color-text);
+}
+
+.tooltipSegs {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 6px;
+}
+
+.tooltipSeg {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tooltipSegName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.tooltipSegEff {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+/* ── Empty state ── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 6px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 40px;
+}
+
+.emptyHint {
+  font-size: 13px;
+  max-width: 320px;
+}

@@ -1,0 +1,265 @@
+.ganttWrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  flex-shrink: 0;
+}
+
+.zoomGroup {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.zoomBtn {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--color-bg-card);
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s;
+  border-right: 1px solid var(--color-border);
+}
+.zoomBtn:last-child {
+  border-right: none;
+}
+.zoomBtn:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+.zoomActive {
+  background: var(--color-accent) !important;
+  color: #fff !important;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-right: auto;
+}
+
+.exportBtns {
+  display: flex;
+  gap: 6px;
+}
+.exportBtn {
+  padding: 5px 10px;
+  font-size: 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg-card);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.exportBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.exportBtn:not(:disabled):hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* ── Body layout ── */
+.ganttBody {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Label panel (left, fixed) ── */
+.labelPanel {
+  width: 240px;
+  min-width: 240px;
+  border-right: 1px solid var(--color-border);
+  overflow: hidden; /* vertical scroll synced via JS */
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-card);
+  flex-shrink: 0;
+}
+
+.labelCorner {
+  display: flex;
+  align-items: flex-end;
+  padding: 0 12px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  height: 100%;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.labelRow[role='button'] {
+  cursor: pointer;
+}
+.labelRow[role='button']:hover {
+  background: var(--color-bg-muted);
+}
+
+.lkind_project {
+  background: var(--color-bg-card);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text);
+}
+.lkind_task {
+  background: var(--color-bg);
+  font-size: 13px;
+  padding-left: 20px;
+}
+.lkind_subtask {
+  background: var(--color-bg);
+  font-size: 12px;
+  padding-left: 36px;
+  color: var(--color-text-muted);
+}
+
+.chevron {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  width: 10px;
+}
+
+.labelText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.noTasksHint {
+  padding: 16px 12px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* ── Chart area (right, both-axis scroll) ── */
+.chartArea {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  user-select: none;
+}
+
+/* Time axis — sticky top inside chartArea */
+.timeAxis {
+  position: sticky;
+  top: 0;
+  display: block;
+  z-index: 2;
+}
+
+/* Axis text */
+.axisLabelMaj {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--color-text-muted);
+}
+.axisLabelMin {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--color-text-muted);
+}
+.axisWeekend {
+  fill: var(--color-border);
+}
+
+.todayLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: #c0392b;
+}
+
+/* Bars */
+.bar {
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+.bar:hover {
+  opacity: 1 !important;
+}
+
+/* ── Tooltip ── */
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+  min-width: 160px;
+  max-width: 220px;
+  white-space: nowrap;
+}
+
+.tooltipName {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.tooltipRow {
+  display: flex;
+  gap: 8px;
+  color: var(--color-text);
+  margin-top: 3px;
+}
+
+.tooltipLabel {
+  color: var(--color-text-muted);
+  min-width: 52px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ── Empty state ── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 40px;
+}
+.emptyHint {
+  font-size: 13px;
+}

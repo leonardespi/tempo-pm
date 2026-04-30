@@ -1,0 +1,46 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  background: var(--color-bg);
+}
+
+.exportBtns {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.exportBtn {
+  padding: 5px 10px;
+  font-size: 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg-card);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+.exportBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.exportBtn:not(:disabled):hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.chartWrap {
+  flex: 1;
+  overflow: hidden;
+}

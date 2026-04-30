@@ -1,0 +1,10 @@
+.page {
+  padding: 32px;
+}
+.page h1 {
+  margin-bottom: 16px;
+}
+.hint {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
