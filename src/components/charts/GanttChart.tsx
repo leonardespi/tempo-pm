@@ -46,6 +46,7 @@ type RowData = {
   effortPoints?: number;
   status?: string;
   taskId?: string; // for subtask rows
+  completion: number; // 0–1
 };
 
 type ArrowData = {
@@ -146,6 +147,12 @@ function makeTimeAxis(
   return { major, minor };
 }
 
+function statusCompletion(status: string): number {
+  if (status === 'done') return 1;
+  if (status === 'in_progress') return 0.5;
+  return 0;
+}
+
 function formatDateShort(s?: string): string {
   if (!s) return '—';
   const d = new Date(s + 'T00:00:00');
@@ -226,6 +233,14 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
 
     for (const project of projects) {
       const projBar = makeBar(project.startDate, project.endDate, 'var(--color-accent)');
+      const projSubs = subtasks.filter((s) =>
+        tasks.some((t) => t.projectId === project.id && t.id === s.taskId),
+      );
+      const projCompletion =
+        projSubs.length === 0
+          ? 0
+          : projSubs.reduce((acc, s) => acc + statusCompletion(s.status), 0) / projSubs.length;
+
       result.push({
         id: project.id,
         kind: 'project',
@@ -235,6 +250,7 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
         bar: projBar,
         startDate: project.startDate,
         endDate: project.endDate,
+        completion: projCompletion,
       });
       y += PROJECT_H;
 
@@ -249,6 +265,11 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
           derived.endDate,
           assignee?.color ?? 'var(--color-accent)',
         );
+        const taskSubs = subtasks.filter((s) => s.taskId === task.id);
+        const taskCompletion =
+          taskSubs.length === 0
+            ? 0
+            : taskSubs.reduce((acc, s) => acc + statusCompletion(s.status), 0) / taskSubs.length;
 
         result.push({
           id: task.id,
@@ -261,12 +282,12 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
           endDate: derived.endDate,
           assigneeName: assignee?.name,
           taskId: task.id,
+          completion: taskCompletion,
         });
         y += ROW_H;
 
         if (collapsed.has(task.id)) continue;
 
-        const taskSubs = subtasks.filter((s) => s.taskId === task.id);
         for (const sub of taskSubs) {
           const subAssignee = sub.assigneeId ? userMap.get(sub.assigneeId) : undefined;
           const subBar = makeBar(
@@ -289,6 +310,7 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
             effortPoints: sub.effortPoints,
             status: sub.status,
             taskId: task.id,
+            completion: statusCompletion(sub.status),
           });
           y += ROW_H;
         }
@@ -296,8 +318,6 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
     }
 
     return result;
-    // dateToX intentionally omitted: it's a stable function based on chartStart+pixelsPerDay
-    // which ARE in the dependency array via collapsed/tasks/subtasks/projects depending on them
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects, tasks, subtasks, collapsed, userMap, chartStart, pixelsPerDay]);
 
@@ -355,6 +375,31 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
       .filter((d) => !isWorkingDay(d, workingDays))
       .map((d) => ({ day: d, isHoliday: workingDays.holidays.includes(d) }));
   }, [chartStart, chartEnd, workingDays]);
+
+  // ── Week column bands (alternating shading) ──────────────────────────────────
+  const weekBands = useMemo(() => {
+    const bands: { x: number; w: number; even: boolean }[] = [];
+    const days = iterateDays(chartStart, chartEnd);
+    let weekIdx = 0;
+    let wStartI = 0;
+    for (let i = 1; i < days.length; i++) {
+      if (new Date(days[i] + 'T00:00:00').getDay() === 1) {
+        bands.push({
+          x: wStartI * pixelsPerDay,
+          w: (i - wStartI) * pixelsPerDay,
+          even: weekIdx % 2 === 0,
+        });
+        weekIdx++;
+        wStartI = i;
+      }
+    }
+    bands.push({
+      x: wStartI * pixelsPerDay,
+      w: (days.length - wStartI) * pixelsPerDay,
+      even: weekIdx % 2 === 0,
+    });
+    return bands;
+  }, [chartStart, chartEnd, pixelsPerDay]);
 
   // ── Time axis ticks ──────────────────────────────────────────────────────────
   const { major: majorTicks, minor: minorTicks } = useMemo(
@@ -635,6 +680,34 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
             aria-hidden="true"
           >
             <rect width={totalWidth} height={AXIS_H} fill="var(--color-bg-card)" />
+
+            {/* Alternating week column bands */}
+            {weekBands.map((band, i) =>
+              !band.even ? (
+                <rect
+                  key={i}
+                  x={band.x}
+                  y={0}
+                  width={band.w}
+                  height={AXIS_H}
+                  className={styles.weekBandOdd}
+                />
+              ) : null,
+            )}
+
+            {/* Non-working day shading in the minor-label row */}
+            {shadedDays.map(({ day, isHoliday }) => (
+              <rect
+                key={`ax-${day}`}
+                x={calDaysBetween(chartStart, day) * pixelsPerDay}
+                y={AXIS_H * 0.48}
+                width={pixelsPerDay}
+                height={AXIS_H * 0.52}
+                className={isHoliday ? undefined : styles.nonWorkAxis}
+                fill={isHoliday ? 'rgba(193,125,82,0.18)' : undefined}
+              />
+            ))}
+
             <line
               x1={0}
               y1={AXIS_H - 0.5}
@@ -699,6 +772,20 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
               data-testid="gantt-svg"
             >
               <defs>
+                {rows.map((row) =>
+                  row.bar ? (
+                    <clipPath key={`clip-${row.id}`} id={`bar-clip-${row.id}`}>
+                      <rect
+                        x={row.bar.x}
+                        y={row.y + BAR_VPAD}
+                        width={row.bar.w}
+                        height={row.h - BAR_VPAD * 2}
+                        rx={BAR_R}
+                        ry={BAR_R}
+                      />
+                    </clipPath>
+                  ) : null,
+                )}
                 <marker
                   id="gantt-arrow-ok"
                   markerWidth="7"
@@ -733,6 +820,20 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
                 />
               ))}
 
+              {/* Alternating week column bands */}
+              {weekBands.map((band, i) =>
+                !band.even ? (
+                  <rect
+                    key={i}
+                    x={band.x}
+                    y={0}
+                    width={band.w}
+                    height={totalHeight}
+                    className={styles.weekBandOddBody}
+                  />
+                ) : null,
+              )}
+
               {/* Weekend + holiday shading */}
               {shadedDays.map(({ day, isHoliday }) => (
                 <rect
@@ -741,7 +842,8 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
                   y={0}
                   width={pixelsPerDay}
                   height={totalHeight}
-                  fill={isHoliday ? 'rgba(193,125,82,0.10)' : 'rgba(0,0,0,0.035)'}
+                  className={isHoliday ? undefined : styles.nonWorkBody}
+                  fill={isHoliday ? 'rgba(193,125,82,0.13)' : undefined}
                 />
               ))}
 
@@ -771,28 +873,79 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
                 />
               ))}
 
-              {/* Bars */}
+              {/* Bars — base + completion fill + label */}
               {rows.map((row) => {
                 if (!row.bar) return null;
                 const barY = row.y + BAR_VPAD;
                 const barH = row.h - BAR_VPAD * 2;
-                const opacity = row.kind === 'project' ? 0.3 : 0.85;
+                const isProject = row.kind === 'project';
+                const baseOpacity = isProject ? 0.22 : 0.42;
+                const fillOpacity = isProject ? 0.38 : 0.88;
+                const fillW = row.bar.w * row.completion;
+                const clipId = `bar-clip-${row.id}`;
+
+                // Estimate if label fits inside the bar
+                const truncLabel = row.label.length > 28 ? row.label.slice(0, 26) + '…' : row.label;
+                const estLabelW = truncLabel.length * 5.8 + 12;
+                const labelInside = !isProject && row.bar.w >= estLabelW;
+                const labelRight = !isProject && !labelInside;
 
                 return (
-                  <rect
-                    key={`bar-${row.id}`}
-                    x={row.bar.x}
-                    y={barY}
-                    width={row.bar.w}
-                    height={barH}
-                    rx={BAR_R}
-                    ry={BAR_R}
-                    fill={row.bar.color}
-                    opacity={opacity}
-                    className={styles.bar}
-                    onMouseEnter={(e) => handleBarEnter(row, e)}
-                    onMouseLeave={() => setTooltip(null)}
-                  />
+                  <g key={`bar-${row.id}`}>
+                    {/* Base bar (light) */}
+                    <rect
+                      x={row.bar.x}
+                      y={barY}
+                      width={row.bar.w}
+                      height={barH}
+                      rx={BAR_R}
+                      ry={BAR_R}
+                      fill={row.bar.color}
+                      fillOpacity={baseOpacity}
+                      className={styles.bar}
+                      onMouseEnter={(e) => handleBarEnter(row, e)}
+                      onMouseLeave={() => setTooltip(null)}
+                    />
+                    {/* Completion fill (darker) */}
+                    {fillW > 0 && (
+                      <rect
+                        x={row.bar.x}
+                        y={barY}
+                        width={fillW}
+                        height={barH}
+                        fill={row.bar.color}
+                        fillOpacity={fillOpacity}
+                        clipPath={`url(#${clipId})`}
+                        pointerEvents="none"
+                      />
+                    )}
+                    {/* In-bar label */}
+                    {labelInside && (
+                      <text
+                        x={row.bar.x + row.bar.w / 2}
+                        y={barY + barH / 2}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        className={styles.barLabelInside}
+                        clipPath={`url(#${clipId})`}
+                        pointerEvents="none"
+                      >
+                        {truncLabel}
+                      </text>
+                    )}
+                    {/* Outside label (bar too short) */}
+                    {labelRight && (
+                      <text
+                        x={row.bar.x + row.bar.w + 5}
+                        y={barY + barH / 2}
+                        dominantBaseline="central"
+                        className={styles.barLabelOutside}
+                        pointerEvents="none"
+                      >
+                        {truncLabel}
+                      </text>
+                    )}
+                  </g>
                 );
               })}
 

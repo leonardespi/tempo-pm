@@ -1,16 +1,17 @@
 import { useMemo, useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import type { Project, Task, Subtask, User, WorkingDaysConfig } from '@/types';
 import { buildBurnoutData, type UserBurnoutRow, type WeekLoad } from '@/utils/burnout';
+import { workingDaysInWeek, workingDaysBetween, toISO } from '@/utils/workingDays';
 import styles from './BurnoutChart.module.css';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const LABEL_W = 160;
 const CELL_W = 96;
-const CELL_H = 68;
+const CELL_H = 52;
 const COL_GAP = 5;
 const ROW_H = CELL_H + 10;
-const HEAD_H = 64;
+const HEAD_H = 48;
 const RADIUS = 6;
 
 // Color bands — documented in docs/burnout-heuristic.md
@@ -37,6 +38,52 @@ type DrillDown = {
   weekLoad: WeekLoad;
 };
 
+type DayLoad = {
+  date: string;
+  dayName: string;
+  effortPts: number;
+  isWorking: boolean;
+  loadRatio: number;
+};
+
+function computeDayLoads(
+  user: User,
+  weekLoad: WeekLoad,
+  subtasks: Subtask[],
+  config: WorkingDaysConfig,
+  dailyCapacity: number,
+): DayLoad[] {
+  const base = new Date(weekLoad.weekStart + 'T00:00:00');
+  const wDays = new Set(workingDaysInWeek(weekLoad.weekStart, config));
+  const dailyCap = dailyCapacity;
+
+  return Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(base);
+    d.setDate(d.getDate() + i);
+    const date = toISO(d);
+    const dayName = d.toLocaleString('en-US', { weekday: 'short' });
+    const isWorking = wDays.has(date);
+
+    let effortPts = 0;
+    if (isWorking) {
+      for (const sub of subtasks) {
+        if (sub.assigneeId !== user.id) continue;
+        if (date < sub.startDate || date > sub.endDate) continue;
+        const total = workingDaysBetween(sub.startDate, sub.endDate, config);
+        effortPts += total > 0 ? sub.effortPoints / total : sub.effortPoints;
+      }
+    }
+
+    return {
+      date,
+      dayName,
+      effortPts,
+      isWorking,
+      loadRatio: dailyCap > 0 ? effortPts / dailyCap : 0,
+    };
+  });
+}
+
 export interface BurnoutChartHandle {
   getSVGElement(): SVGSVGElement | null;
 }
@@ -48,25 +95,55 @@ type Props = {
   users: User[];
   workingDays: WorkingDaysConfig;
   filterProjectId: string;
+  filterUserId: string;
+  dailyCapacity: number;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const BurnoutChart = forwardRef<BurnoutChartHandle, Props>(function BurnoutChart(
-  { projects, tasks, subtasks, users, workingDays, filterProjectId },
+  { projects, tasks, subtasks, users, workingDays, filterProjectId, filterUserId, dailyCapacity },
   ref,
 ) {
   const [selected, setSelected] = useState<DrillDown | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   useImperativeHandle(ref, () => ({
     getSVGElement: () => svgRef.current,
   }));
 
-  const { rows, allWeeks } = useMemo(
-    () => buildBurnoutData(projects, tasks, subtasks, users, workingDays, filterProjectId),
-    [projects, tasks, subtasks, users, workingDays, filterProjectId],
+  const { rows, allWeeks } = useMemo(() => {
+    const data = buildBurnoutData(
+      projects,
+      tasks,
+      subtasks,
+      users,
+      workingDays,
+      filterProjectId,
+      dailyCapacity,
+    );
+    return filterUserId
+      ? { ...data, rows: data.rows.filter((r) => r.user.id === filterUserId) }
+      : data;
+  }, [projects, tasks, subtasks, users, workingDays, filterProjectId, filterUserId, dailyCapacity]);
+
+  const dayLoads = useMemo(
+    () =>
+      selected
+        ? computeDayLoads(selected.user, selected.weekLoad, subtasks, workingDays, dailyCapacity)
+        : [],
+    [selected, subtasks, workingDays, dailyCapacity],
   );
+
+  const filteredSegments = useMemo(() => {
+    if (!selected) return [];
+    if (!selectedDay) return selected.weekLoad.segments;
+    return selected.weekLoad.segments.filter((seg) => {
+      const sub = subtasks.find((s) => s.id === seg.subtaskId);
+      return sub && selectedDay >= sub.startDate && selectedDay <= sub.endDate;
+    });
+  }, [selected, selectedDay, subtasks]);
 
   if (users.length === 0) {
     return (
@@ -95,11 +172,16 @@ export const BurnoutChart = forwardRef<BurnoutChartHandle, Props>(function Burno
 
   function handleCellClick(row: UserBurnoutRow, wl: WeekLoad) {
     if (wl.loadRatio <= 0) return;
+    setSelectedDay(null);
     setSelected((prev) =>
       prev?.user.id === row.user.id && prev.weekLoad.weekStart === wl.weekStart
         ? null
         : { user: row.user, weekLoad: wl },
     );
+  }
+
+  function handleDayClick(date: string) {
+    setSelectedDay((prev) => (prev === date ? null : date));
   }
 
   return (
@@ -222,6 +304,7 @@ export const BurnoutChart = forwardRef<BurnoutChartHandle, Props>(function Burno
       {/* Drill-down panel */}
       {selected && (
         <div className={styles.drillDown} data-testid="burnout-drilldown">
+          {/* Header */}
           <div className={styles.drillHeader}>
             <span className={styles.drillDot} style={{ background: selected.user.color }} />
             <strong className={styles.drillName}>{selected.user.name}</strong>
@@ -233,17 +316,83 @@ export const BurnoutChart = forwardRef<BurnoutChartHandle, Props>(function Burno
               {Math.round(selected.weekLoad.loadRatio * 100)}%
             </span>
             <span className={styles.drillCapacity}>
-              {selected.weekLoad.effortPts.toFixed(1)} / {selected.user.weeklyCapacity} pts
+              {selected.weekLoad.effortPts.toFixed(1)} / {dailyCapacity * 5} pts
             </span>
             <button
               className={styles.drillClose}
-              onClick={() => setSelected(null)}
+              onClick={() => {
+                setSelected(null);
+                setSelectedDay(null);
+              }}
               aria-label="Close drill-down"
             >
               ×
             </button>
           </div>
 
+          {/* Day-by-day breakdown */}
+          <div className={styles.dayCards}>
+            {dayLoads.map((day) => (
+              <div
+                key={day.date}
+                className={`${styles.dayCard} ${!day.isWorking ? styles.dayOff : ''} ${day.isWorking && selectedDay === day.date ? styles.dayCardSelected : ''}`}
+                onClick={() => day.isWorking && handleDayClick(day.date)}
+              >
+                <span className={styles.dayCardName}>
+                  {day.dayName} - {day.date.slice(8, 10)}
+                </span>
+                <div className={styles.dayBarTrack}>
+                  <div
+                    className={styles.dayBarFill}
+                    style={{
+                      height: `${Math.min(day.loadRatio * 100, 100)}%`,
+                      background: day.effortPts > 0 ? loadFill(day.loadRatio) : undefined,
+                    }}
+                  />
+                </div>
+                {day.isWorking ? (
+                  <span
+                    className={styles.dayCardBadge}
+                    style={
+                      day.effortPts > 0
+                        ? { background: loadFill(day.loadRatio), color: '#fff' }
+                        : { background: 'var(--color-bg-muted)', color: 'var(--color-text-muted)' }
+                    }
+                  >
+                    {Math.round(day.loadRatio * 100)}%
+                  </span>
+                ) : (
+                  <span className={styles.dayCardPts}>–</span>
+                )}
+                <span className={styles.dayCardPts}>
+                  {day.isWorking ? `${day.effortPts.toFixed(1)} pts` : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Subtask table */}
+          <div className={styles.drillTableHeader}>
+            {selectedDay ? (
+              <>
+                <span>
+                  Tasks on{' '}
+                  <strong>
+                    {new Date(selectedDay + 'T00:00:00').toLocaleString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </strong>
+                </span>
+                <button className={styles.drillClearDay} onClick={() => setSelectedDay(null)}>
+                  Show all
+                </button>
+              </>
+            ) : (
+              <span>All tasks this week</span>
+            )}
+          </div>
           <table className={styles.drillTable}>
             <thead>
               <tr>
@@ -254,26 +403,34 @@ export const BurnoutChart = forwardRef<BurnoutChartHandle, Props>(function Burno
               </tr>
             </thead>
             <tbody>
-              {selected.weekLoad.segments.map((seg) => (
-                <tr key={seg.subtaskId}>
-                  <td>{seg.subtaskName}</td>
-                  <td className={styles.drillCrumb}>
-                    {seg.projectName} <span>›</span> {seg.taskName}
-                  </td>
-                  <td className={styles.drillEff}>{seg.effort.toFixed(1)} pts</td>
-                  <td>
-                    <span className={styles.statusBadge} data-status={seg.status}>
-                      {seg.status === 'not_started'
-                        ? 'Not started'
-                        : seg.status === 'in_progress'
-                          ? 'In progress'
-                          : seg.status === 'blocked'
-                            ? 'Blocked'
-                            : 'Done'}
-                    </span>
+              {filteredSegments.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className={styles.drillEmpty}>
+                    No tasks on this day.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredSegments.map((seg) => (
+                  <tr key={seg.subtaskId}>
+                    <td>{seg.subtaskName}</td>
+                    <td className={styles.drillCrumb}>
+                      {seg.projectName} <span>›</span> {seg.taskName}
+                    </td>
+                    <td className={styles.drillEff}>{seg.effort.toFixed(1)} pts</td>
+                    <td>
+                      <span className={styles.statusBadge} data-status={seg.status}>
+                        {seg.status === 'not_started'
+                          ? 'Not started'
+                          : seg.status === 'in_progress'
+                            ? 'In progress'
+                            : seg.status === 'blocked'
+                              ? 'Blocked'
+                              : 'Done'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

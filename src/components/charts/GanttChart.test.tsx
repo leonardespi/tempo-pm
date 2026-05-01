@@ -101,9 +101,9 @@ describe('GanttChart', () => {
         workingDays={wdays}
       />,
     );
-    expect(screen.getByText('Alpha')).toBeTruthy();
-    expect(screen.getByText('Design')).toBeTruthy();
-    expect(screen.getByText('Build')).toBeTruthy();
+    expect(screen.getAllByText('Alpha').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Design').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Build').length).toBeGreaterThan(0);
   });
 
   it('shows zoom buttons', () => {

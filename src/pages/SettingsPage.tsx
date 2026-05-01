@@ -72,6 +72,27 @@ export default function SettingsPage() {
       </section>
 
       <section className={styles.section}>
+        <h3>Burnout Chart</h3>
+        <FormField
+          label="Daily capacity (pts)"
+          hint="Max effort points per person per day — sets 100% on the burnout chart."
+        >
+          <input
+            type="number"
+            className="input"
+            min={0.5}
+            step={0.5}
+            value={settings.dailyCapacity}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              if (val > 0) void saveData({ settings: { ...settings, dailyCapacity: val } });
+            }}
+            style={{ width: 100 }}
+          />
+        </FormField>
+      </section>
+
+      <section className={styles.section}>
         <h3>Data File</h3>
         <p className={styles.dataPath}>
           Stored in your OS data directory under <code>tempo/data.json</code>. Backups are kept as{' '}

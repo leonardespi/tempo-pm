@@ -64,6 +64,7 @@ export function buildBurnoutData(
   users: User[],
   workingDays: WorkingDaysConfig,
   filterProjectId: string,
+  dailyCapacity: number,
 ): { rows: UserBurnoutRow[]; allWeeks: string[] } {
   if (users.length === 0 || subtasks.length === 0) {
     return { rows: [], allWeeks: [] };
@@ -111,7 +112,8 @@ export function buildBurnoutData(
         effortPts += effort;
       }
 
-      const loadRatio = user.weeklyCapacity > 0 ? effortPts / user.weeklyCapacity : 0;
+      const weeklyCapacity = dailyCapacity * 5;
+      const loadRatio = weeklyCapacity > 0 ? effortPts / weeklyCapacity : 0;
       return { weekStart, label, loadRatio, effortPts, segments };
     });
 

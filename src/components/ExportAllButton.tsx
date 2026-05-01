@@ -22,6 +22,7 @@ export function ExportAllButton({ projectId, projectName }: Props) {
   const allProjects = useStore((s) => s.projects);
   const users = useStore((s) => s.users);
   const workingDays = useStore((s) => s.workingDays);
+  const dailyCapacity = useStore((s) => s.settings.dailyCapacity);
 
   const ganttRef = useRef<GanttChartHandle>(null);
   const timelineRef = useRef<TimelineChartHandle>(null);
@@ -118,6 +119,8 @@ export function ExportAllButton({ projectId, projectName }: Props) {
               users={users}
               workingDays={workingDays}
               filterProjectId={projectId}
+              filterUserId=""
+              dailyCapacity={dailyCapacity}
             />
           </div>,
           document.body,

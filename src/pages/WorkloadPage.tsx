@@ -12,6 +12,8 @@ export default function WorkloadPage() {
   const workingDays = useStore((s) => s.workingDays);
 
   const [filterProjectId, setFilterProjectId] = useState('');
+  const [filterUserId, setFilterUserId] = useState('');
+  const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
   const [exporting, setExporting] = useState(false);
   const chartRef = useRef<WorkloadChartHandle>(null);
 
@@ -64,6 +66,35 @@ export default function WorkloadPage() {
               </option>
             ))}
           </select>
+
+          <select
+            className="input"
+            value={filterUserId}
+            onChange={(e) => setFilterUserId(e.target.value)}
+            aria-label="Filter by team member"
+          >
+            <option value="">All members</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
+
+          <div className={styles.viewToggle} role="group" aria-label="View mode">
+            <button
+              className={`${styles.viewBtn} ${viewMode === 'week' ? styles.viewBtnActive : ''}`}
+              onClick={() => setViewMode('week')}
+            >
+              Week
+            </button>
+            <button
+              className={`${styles.viewBtn} ${viewMode === 'day' ? styles.viewBtnActive : ''}`}
+              onClick={() => setViewMode('day')}
+            >
+              Day
+            </button>
+          </div>
         </div>
 
         <div className={styles.exportBtns}>
@@ -85,6 +116,8 @@ export default function WorkloadPage() {
           users={users}
           workingDays={workingDays}
           filterProjectId={filterProjectId}
+          filterUserId={filterUserId}
+          viewMode={viewMode}
         />
       </div>
     </div>

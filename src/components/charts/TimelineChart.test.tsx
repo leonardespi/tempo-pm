@@ -76,9 +76,12 @@ describe('TimelineChart', () => {
     expect(screen.getByTestId('timeline-empty')).toBeTruthy();
   });
 
-  it('shows no-results state when filters exclude everything', () => {
+  it('shows only today with lonely message when filters exclude all events', () => {
     render(<TimelineChart {...base} filterAssigneeId="u999" />);
-    expect(screen.getByTestId('timeline-no-results')).toBeTruthy();
+    // No events match, but today's section is always present
+    expect(screen.getByTestId('timeline-chart')).toBeTruthy();
+    expect(screen.getByText(/seems a little bit lonely/i)).toBeTruthy();
+    expect(screen.queryAllByTestId('timeline-event').length).toBe(0);
   });
 
   it('renders event rows for each subtask (start + end per subtask)', () => {
@@ -132,8 +135,9 @@ describe('TimelineChart', () => {
   it('shows date groups', () => {
     render(<TimelineChart {...base} />);
     const groups = screen.getAllByTestId('timeline-date-group');
-    // Unique dates: Jan 6, Jan 10, Jan 13, Jan 17, Feb 3, Feb 14 = 6
-    expect(groups.length).toBe(6);
+    // Unique dates from subtasks: Jan 6, Jan 10, Jan 13, Jan 17, Feb 3, Feb 14 = 6
+    // Today is always injected (+1 unless today already appears in the data)
+    expect(groups.length).toBeGreaterThanOrEqual(6);
   });
 
   it('collapses same-day start+end into one date group', () => {
@@ -149,9 +153,7 @@ describe('TimelineChart', () => {
       },
     ];
     render(<TimelineChart {...base} subtasks={sameDaySubs} />);
-    // startDate === endDate → only 1 event (start), so 1 date group
-    const groups = screen.getAllByTestId('timeline-date-group');
-    expect(groups.length).toBe(1);
+    // startDate === endDate → only 1 event (start) → 1 event group + today group
     expect(screen.getAllByTestId('timeline-event').length).toBe(1);
   });
 

@@ -78,6 +78,14 @@ export default function TimelinePage() {
               </option>
             ))}
           </select>
+
+          <button
+            className={styles.todayBtn}
+            onClick={() => chartRef.current?.scrollToToday()}
+            aria-label="Scroll to today"
+          >
+            Today
+          </button>
         </div>
 
         <div className={styles.exportBtns}>

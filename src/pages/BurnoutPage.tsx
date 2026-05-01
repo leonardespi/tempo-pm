@@ -10,8 +10,10 @@ export default function BurnoutPage() {
   const subtasks = useStore((s) => s.subtasks);
   const users = useStore((s) => s.users);
   const workingDays = useStore((s) => s.workingDays);
+  const dailyCapacity = useStore((s) => s.settings.dailyCapacity);
 
   const [filterProjectId, setFilterProjectId] = useState('');
+  const [filterUserId, setFilterUserId] = useState('');
   const [exporting, setExporting] = useState(false);
   const chartRef = useRef<BurnoutChartHandle>(null);
 
@@ -64,6 +66,19 @@ export default function BurnoutPage() {
               </option>
             ))}
           </select>
+          <select
+            className="input"
+            value={filterUserId}
+            onChange={(e) => setFilterUserId(e.target.value)}
+            aria-label="Filter by team member"
+          >
+            <option value="">All members</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={styles.exportBtns}>
@@ -85,6 +100,8 @@ export default function BurnoutPage() {
           users={users}
           workingDays={workingDays}
           filterProjectId={filterProjectId}
+          filterUserId={filterUserId}
+          dailyCapacity={dailyCapacity}
         />
       </div>
     </div>

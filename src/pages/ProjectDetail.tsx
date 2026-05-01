@@ -108,6 +108,8 @@ export default function ProjectDetail() {
   const [projForm, setProjForm] = useState({
     name: project?.name ?? '',
     description: project?.description ?? '',
+    startDate: project?.startDate ?? '',
+    endDate: project?.endDate ?? '',
   });
 
   useEffect(() => {
@@ -303,6 +305,22 @@ export default function ProjectDetail() {
               placeholder="Description…"
               rows={2}
             />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <label style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Start</label>
+              <input
+                type="date"
+                className="input"
+                value={projForm.startDate}
+                onChange={(e) => setProjForm({ ...projForm, startDate: e.target.value })}
+              />
+              <label style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>End</label>
+              <input
+                type="date"
+                className="input"
+                value={projForm.endDate}
+                onChange={(e) => setProjForm({ ...projForm, endDate: e.target.value })}
+              />
+            </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <Button
                 variant="primary"
@@ -311,6 +329,8 @@ export default function ProjectDetail() {
                   void updateProject(project.id, {
                     name: projForm.name.trim(),
                     description: projForm.description.trim() || undefined,
+                    startDate: projForm.startDate,
+                    endDate: projForm.endDate,
                   });
                   setEditProject(false);
                 }}
@@ -329,7 +349,12 @@ export default function ProjectDetail() {
               variant="ghost"
               size="sm"
               onClick={() => {
-                setProjForm({ name: project.name, description: project.description ?? '' });
+                setProjForm({
+                  name: project.name,
+                  description: project.description ?? '',
+                  startDate: project.startDate,
+                  endDate: project.endDate,
+                });
                 setEditProject(true);
               }}
             >

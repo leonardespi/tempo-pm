@@ -22,7 +22,43 @@
 
 .filters {
   display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+/* ── View toggle ── */
+.viewToggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.viewBtn {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  background: var(--color-bg-card);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition:
+    background 0.1s,
+    color 0.1s;
+}
+.viewBtn + .viewBtn {
+  border-left: 1px solid var(--color-border);
+}
+.viewBtn:hover:not(.viewBtnActive) {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+.viewBtnActive {
+  background: var(--color-accent);
+  color: #fff;
+  cursor: default;
 }
 
 .exportBtns {

@@ -8,7 +8,13 @@ import {
   type MouseEvent,
 } from 'react';
 import type { Project, Task, Subtask, User, WorkingDaysConfig } from '@/types';
-import { getISOWeekStart, enumerateWeeks } from '@/utils/workingDays';
+import {
+  getISOWeekStart,
+  enumerateWeeks,
+  toISO,
+  isWorkingDay,
+  workingDaysBetween,
+} from '@/utils/workingDays';
 import { prorateEffort } from '@/utils/burnout';
 import styles from './WorkloadChart.module.css';
 
@@ -18,12 +24,16 @@ export interface WorkloadChartHandle {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BAR_W = 32; // width of a single user-week bar
-const BAR_GAP = 6; // gap between bars in the same week
+const BAR_W = 32; // multi-user weekly bar width
+const BAR_W_DAY = 18; // multi-user daily bar width
+const BAR_W_FOCUSED = 80; // single-user focused bar width (any mode)
+const BAR_GAP = 6; // gap between bars in the same group (multi-user)
+const BAR_GAP_DAY = 4; // smaller gap for day-mode multi-user
 const WEEK_GAP = 20; // gap between week groups
-const CHART_H = 320; // fixed SVG height for bars
-const AXIS_B = 36; // bottom axis height
-const AXIS_L = 48; // left axis width
+const DAY_GAP = 8; // gap between day groups
+const CHART_H = 320;
+const AXIS_B = 36;
+const AXIS_L = 48;
 const SVG_H = CHART_H + AXIS_B;
 const TOP_PAD = 16;
 
@@ -35,12 +45,12 @@ type WeekSegment = {
   subtaskName: string;
   taskName: string;
   projectName: string;
-  effort: number; // prorated effort for this week
+  effort: number;
 };
 
-type WeekColumn = {
-  weekStart: string; // ISO date (Monday)
-  label: string; // display label e.g. "Jan 6"
+type Column = {
+  bucketKey: string;
+  label: string;
   userBars: {
     userId: string;
     segments: WeekSegment[];
@@ -49,14 +59,28 @@ type WeekColumn = {
 };
 
 type TooltipState = {
-  weekLabel: string;
+  bucketLabel: string;
   userName: string;
   userColor: string;
   totalEffort: number;
   segments: WeekSegment[];
-  x: number;
+  barLeft: number; // viewport left edge of the hovered bar
+  barRight: number; // viewport right edge of the hovered bar
   y: number;
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function enumerateDays(startDateStr: string, endDateStr: string): string[] {
+  const days: string[] = [];
+  const d = new Date(startDateStr + 'T00:00:00');
+  const end = new Date(endDateStr + 'T00:00:00');
+  while (d <= end) {
+    days.push(toISO(d));
+    d.setDate(d.getDate() + 1);
+  }
+  return days;
+}
 
 // ─── Build chart data ─────────────────────────────────────────────────────────
 
@@ -67,69 +91,106 @@ function buildWorkloadData(
   users: User[],
   workingDays: WorkingDaysConfig,
   filterProjectId: string,
-): { columns: WeekColumn[]; maxEffort: number } {
-  if (users.length === 0 || subtasks.length === 0) {
+  filterUserId: string,
+  viewMode: 'week' | 'day',
+): { columns: Column[]; maxEffort: number } {
+  const displayedUsers = filterUserId ? users.filter((u) => u.id === filterUserId) : users;
+
+  if (displayedUsers.length === 0 || subtasks.length === 0) {
     return { columns: [], maxEffort: 0 };
   }
 
   const projectMap = new Map(projects.map((p) => [p.id, p]));
   const taskMap = new Map(tasks.map((t) => [t.id, t]));
 
-  // Filter subtasks
   const filtered = subtasks.filter((s) => {
     const task = taskMap.get(s.taskId);
     if (!task) return false;
     if (filterProjectId && task.projectId !== filterProjectId) return false;
-    return !!s.assigneeId; // workload only makes sense for assigned subtasks
+    if (filterUserId && s.assigneeId !== filterUserId) return false;
+    return !!s.assigneeId;
   });
 
   if (filtered.length === 0) return { columns: [], maxEffort: 0 };
 
-  // Date range
   const allDates = filtered.flatMap((s) => [s.startDate, s.endDate]);
-  const rangeStart = getISOWeekStart(allDates.reduce((a, b) => (a < b ? a : b)));
+  const rangeStart = allDates.reduce((a, b) => (a < b ? a : b));
   const rangeEnd = allDates.reduce((a, b) => (a > b ? a : b));
-  const weeks = enumerateWeeks(rangeStart, rangeEnd);
 
   let maxEffort = 0;
 
-  const columns: WeekColumn[] = weeks.map((weekStart) => {
-    const d = new Date(weekStart + 'T00:00:00');
-    const month = d.toLocaleString('en-US', { month: 'short' });
-    const day = d.getDate();
-    const label = `${month} ${day}`;
+  if (viewMode === 'week') {
+    const weeks = enumerateWeeks(getISOWeekStart(rangeStart), rangeEnd);
 
-    const userBars = users.map((user) => {
-      const segments: WeekSegment[] = [];
+    const columns: Column[] = weeks.map((weekStart) => {
+      const d = new Date(weekStart + 'T00:00:00');
+      const month = d.toLocaleString('en-US', { month: 'short' });
+      const label = `${month} ${d.getDate()}`;
 
-      for (const sub of filtered) {
-        if (sub.assigneeId !== user.id) continue;
-        const effort = prorateEffort(sub, weekStart, workingDays);
-        if (effort <= 0) continue;
+      const userBars = displayedUsers.map((user) => {
+        const segments: WeekSegment[] = [];
+        for (const sub of filtered) {
+          if (sub.assigneeId !== user.id) continue;
+          const effort = prorateEffort(sub, weekStart, workingDays);
+          if (effort <= 0) continue;
+          const task = taskMap.get(sub.taskId);
+          const project = task ? projectMap.get(task.projectId) : undefined;
+          segments.push({
+            userId: user.id,
+            subtaskId: sub.id,
+            subtaskName: sub.name,
+            taskName: task?.name ?? '—',
+            projectName: project?.name ?? '—',
+            effort,
+          });
+        }
+        const totalEffort = segments.reduce((acc, s) => acc + s.effort, 0);
+        if (totalEffort > maxEffort) maxEffort = totalEffort;
+        return { userId: user.id, segments, totalEffort };
+      });
 
-        const task = taskMap.get(sub.taskId);
-        const project = task ? projectMap.get(task.projectId) : undefined;
-
-        segments.push({
-          userId: user.id,
-          subtaskId: sub.id,
-          subtaskName: sub.name,
-          taskName: task?.name ?? '—',
-          projectName: project?.name ?? '—',
-          effort,
-        });
-      }
-
-      const totalEffort = segments.reduce((acc, s) => acc + s.effort, 0);
-      if (totalEffort > maxEffort) maxEffort = totalEffort;
-
-      return { userId: user.id, segments, totalEffort };
+      return { bucketKey: weekStart, label, userBars };
     });
 
-    return { weekStart, label, userBars };
-  });
+    return { columns, maxEffort };
+  } else {
+    // Day mode — only working days
+    const days = enumerateDays(rangeStart, rangeEnd).filter((d) => isWorkingDay(d, workingDays));
 
-  return { columns, maxEffort };
+    const columns: Column[] = days.map((date) => {
+      const d = new Date(date + 'T00:00:00');
+      const dayName = d.toLocaleString('en-US', { weekday: 'short' });
+      const label = `${dayName} ${String(d.getDate()).padStart(2, '0')}`;
+
+      const userBars = displayedUsers.map((user) => {
+        const segments: WeekSegment[] = [];
+        for (const sub of filtered) {
+          if (sub.assigneeId !== user.id) continue;
+          if (date < sub.startDate || date > sub.endDate) continue;
+          const totalDays = workingDaysBetween(sub.startDate, sub.endDate, workingDays);
+          const effort = totalDays > 0 ? sub.effortPoints / totalDays : sub.effortPoints;
+          if (effort <= 0) continue;
+          const task = taskMap.get(sub.taskId);
+          const project = task ? projectMap.get(task.projectId) : undefined;
+          segments.push({
+            userId: user.id,
+            subtaskId: sub.id,
+            subtaskName: sub.name,
+            taskName: task?.name ?? '—',
+            projectName: project?.name ?? '—',
+            effort,
+          });
+        }
+        const totalEffort = segments.reduce((acc, s) => acc + s.effort, 0);
+        if (totalEffort > maxEffort) maxEffort = totalEffort;
+        return { userId: user.id, segments, totalEffort };
+      });
+
+      return { bucketKey: date, label, userBars };
+    });
+
+    return { columns, maxEffort };
+  }
 }
 
 // ─── Y-axis helpers ───────────────────────────────────────────────────────────
@@ -156,10 +217,21 @@ type Props = {
   users: User[];
   workingDays: WorkingDaysConfig;
   filterProjectId: string;
+  filterUserId?: string;
+  viewMode?: 'week' | 'day';
 };
 
 export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function WorkloadChart(
-  { projects, tasks, subtasks, users, workingDays, filterProjectId },
+  {
+    projects,
+    tasks,
+    subtasks,
+    users,
+    workingDays,
+    filterProjectId,
+    filterUserId = '',
+    viewMode = 'week',
+  },
   ref,
 ) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
@@ -172,17 +244,36 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
 
   const userMap = useMemo(() => new Map(users.map((u) => [u.id, u])), [users]);
 
+  const displayedUsers = useMemo(
+    () => (filterUserId ? users.filter((u) => u.id === filterUserId) : users),
+    [users, filterUserId],
+  );
+
   const { columns, maxEffort } = useMemo(
-    () => buildWorkloadData(projects, tasks, subtasks, users, workingDays, filterProjectId),
-    [projects, tasks, subtasks, users, workingDays, filterProjectId],
+    () =>
+      buildWorkloadData(
+        projects,
+        tasks,
+        subtasks,
+        users,
+        workingDays,
+        filterProjectId,
+        filterUserId,
+        viewMode,
+      ),
+    [projects, tasks, subtasks, users, workingDays, filterProjectId, filterUserId, viewMode],
   );
 
   const yMax = niceMax(maxEffort);
   const ticks = yTicks(yMax);
 
-  // SVG width: AXIS_L + (BAR_W * users + BAR_GAP * (users-1) + WEEK_GAP) * weeks
-  const usersCount = users.length;
-  const weekGroupW = usersCount * BAR_W + Math.max(0, usersCount - 1) * BAR_GAP + WEEK_GAP;
+  const isFocused = filterUserId !== '';
+  const isDay = viewMode === 'day';
+  const barW = isFocused ? BAR_W_FOCUSED : isDay ? BAR_W_DAY : BAR_W;
+  const barGap = isDay && !isFocused ? BAR_GAP_DAY : BAR_GAP;
+  const colGap = isDay ? DAY_GAP : WEEK_GAP;
+  const displayedCount = displayedUsers.length;
+  const weekGroupW = displayedCount * barW + Math.max(0, displayedCount - 1) * barGap + colGap;
   const svgWidth = AXIS_L + columns.length * weekGroupW;
 
   function effortToY(effort: number): number {
@@ -194,22 +285,31 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
   }
 
   const handleBarHover = useCallback(
-    (e: MouseEvent<SVGRectElement>, col: WeekColumn, bar: WeekColumn['userBars'][0]) => {
+    (
+      e: MouseEvent<SVGRectElement>,
+      col: Column,
+      bar: Column['userBars'][0],
+      svgBarX: number,
+      svgBarW: number,
+    ) => {
       const user = userMap.get(bar.userId);
       if (!user || bar.totalEffort === 0) return;
-      const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-      const containerRect = containerRef.current?.getBoundingClientRect();
-      if (!svgRect || !containerRect) return;
-      const x = e.clientX - containerRect.left;
-      const y = e.clientY - containerRect.top;
+      // Derive viewport position from the SVG element's rect + the bar's SVG x-coordinate.
+      // Using the SVG element (not the child rect) is reliable under container scroll because
+      // getBoundingClientRect() on the SVG correctly subtracts scrollLeft of its overflow parent.
+      const svgRect = svgRef.current?.getBoundingClientRect();
+      if (!svgRect) return;
+      const barLeft = svgRect.left + svgBarX;
+      const barRight = barLeft + svgBarW;
       setTooltip({
-        weekLabel: col.label,
+        bucketLabel: col.label,
         userName: user.name,
         userColor: user.color,
         totalEffort: bar.totalEffort,
         segments: bar.segments,
-        x,
-        y,
+        barLeft,
+        barRight,
+        y: e.clientY,
       });
     },
     [userMap],
@@ -230,17 +330,19 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
       <div className={styles.empty} data-testid="workload-empty">
         <p>No assigned subtasks to display.</p>
         <p className={styles.emptyHint}>
-          Assign subtasks to team members to see their weekly workload here.
+          Assign subtasks to team members to see their {isDay ? 'daily' : 'weekly'} workload here.
         </p>
       </div>
     );
   }
 
+  const barsContentW = displayedCount * barW + Math.max(0, displayedCount - 1) * barGap;
+
   return (
     <div className={styles.wrap} data-testid="workload-chart">
       {/* Legend */}
       <div className={styles.legend}>
-        {users.map((u) => (
+        {displayedUsers.map((u) => (
           <span key={u.id} className={styles.legendItem}>
             <span className={styles.legendDot} style={{ background: u.color }} />
             {u.name}
@@ -291,15 +393,15 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
             Effort pts
           </text>
 
-          {/* Week columns */}
+          {/* Columns */}
           {columns.map((col, ci) => {
-            const weekX = AXIS_L + ci * weekGroupW;
+            const colX = AXIS_L + ci * weekGroupW;
 
             return (
-              <g key={col.weekStart}>
-                {/* Week label (bottom axis) */}
+              <g key={col.bucketKey}>
+                {/* Bucket label (bottom axis) */}
                 <text
-                  x={weekX + (usersCount * BAR_W + Math.max(0, usersCount - 1) * BAR_GAP) / 2}
+                  x={colX + barsContentW / 2}
                   y={SVG_H + TOP_PAD - 4}
                   className={styles.xLabel}
                   textAnchor="middle"
@@ -307,15 +409,14 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
                   {col.label}
                 </text>
 
-                {/* User bars within this week */}
+                {/* User bars within this column */}
                 {col.userBars.map((bar, ui) => {
                   const user = userMap.get(bar.userId);
                   if (!user || bar.totalEffort === 0) return null;
-                  const barX = weekX + ui * (BAR_W + BAR_GAP);
+                  const barX = colX + ui * (barW + barGap);
                   const barH = effortToH(bar.totalEffort);
                   const barY = effortToY(bar.totalEffort);
 
-                  // Stack segments within the bar (top to bottom)
                   let segY = barY;
                   const segRects: { y: number; h: number; opacity: number }[] = [];
                   const sortedSegs = [...bar.segments].sort((a, b) => b.effort - a.effort);
@@ -332,7 +433,7 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
                           key={si}
                           x={barX}
                           y={seg.y}
-                          width={BAR_W}
+                          width={barW}
                           height={Math.max(seg.h, 1)}
                           fill={user.color}
                           opacity={seg.opacity}
@@ -340,15 +441,15 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
                           ry={si === 0 ? 3 : 0}
                         />
                       ))}
-                      {/* Invisible hover target covering full bar */}
+                      {/* Invisible hover target */}
                       <rect
                         x={barX}
                         y={barY}
-                        width={BAR_W}
+                        width={barW}
                         height={barH}
                         fill="transparent"
                         className={styles.hoverTarget}
-                        onMouseEnter={(e) => handleBarHover(e, col, bar)}
+                        onMouseEnter={(e) => handleBarHover(e, col, bar, barX, barW)}
                         onMouseLeave={() => setTooltip(null)}
                         aria-label={`${user.name}: ${bar.totalEffort.toFixed(1)} pts`}
                       />
@@ -360,17 +461,23 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
           })}
         </svg>
 
-        {/* Tooltip */}
+        {/* Tooltip — fixed to viewport, anchored to the bar edge with the most space */}
         {tooltip && (
           <div
             className={styles.tooltip}
-            style={{ left: tooltip.x + 12, top: tooltip.y - 8 }}
+            style={{
+              left:
+                window.innerWidth - tooltip.barRight >= 260
+                  ? tooltip.barRight + 8
+                  : tooltip.barLeft - 260,
+              top: tooltip.y - 8,
+            }}
             role="tooltip"
           >
             <div className={styles.tooltipHeader}>
               <span className={styles.tooltipDot} style={{ background: tooltip.userColor }} />
               <strong>{tooltip.userName}</strong>
-              <span className={styles.tooltipWeek}>{tooltip.weekLabel}</span>
+              <span className={styles.tooltipWeek}>{tooltip.bucketLabel}</span>
             </div>
             <div className={styles.tooltipTotal}>
               <span className={styles.mono}>{tooltip.totalEffort.toFixed(1)}</span> pts total

@@ -1,4 +1,4 @@
-import { useMemo, forwardRef, useImperativeHandle } from 'react';
+import React, { useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
 import type { Project, Task, Subtask, User, SubtaskStatus } from '@/types';
 import { toISO } from '@/utils/workingDays';
 import { buildCSSVarMap, makeSVGEl, todayISO } from '@/utils/exportChart';
@@ -6,6 +6,7 @@ import styles from './TimelineChart.module.css';
 
 export interface TimelineChartHandle {
   buildExportSVG(): SVGSVGElement;
+  scrollToToday(): void;
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -150,14 +151,16 @@ function DateSection({
   events,
   isToday,
   isPast,
+  sectionRef,
 }: {
   date: string;
   events: TLEvent[];
   isToday: boolean;
   isPast: boolean;
+  sectionRef?: React.RefObject<HTMLDivElement>;
 }) {
   return (
-    <div className={styles.dateGroup} data-testid="timeline-date-group">
+    <div className={styles.dateGroup} data-testid="timeline-date-group" ref={sectionRef}>
       <div
         className={`${styles.dateSeparator} ${isToday ? styles.separatorToday : isPast ? styles.separatorPast : ''}`}
       >
@@ -169,11 +172,15 @@ function DateSection({
         <span className={styles.dateLine} aria-hidden="true" />
       </div>
 
-      <div className={styles.eventList}>
-        {events.map((ev) => (
-          <EventRow key={ev.id} event={ev} />
-        ))}
-      </div>
+      {events.length > 0 ? (
+        <div className={styles.eventList}>
+          {events.map((ev) => (
+            <EventRow key={ev.id} event={ev} />
+          ))}
+        </div>
+      ) : isToday ? (
+        <p className={styles.lonelyMsg}>seems a little bit lonely around here</p>
+      ) : null}
     </div>
   );
 }
@@ -194,26 +201,33 @@ export const TimelineChart = forwardRef<TimelineChartHandle, Props>(function Tim
   ref,
 ) {
   const today = toISO(new Date());
+  const todayGroupRef = useRef<HTMLDivElement>(null);
 
   const events = useMemo(
     () => buildEvents(projects, tasks, subtasks, users, filterProjectId, filterAssigneeId),
     [projects, tasks, subtasks, users, filterProjectId, filterAssigneeId],
   );
 
-  // Group by date
+  // Group by date — today is always injected so it's always visible
   const grouped = useMemo(() => {
     const map = new Map<string, TLEvent[]>();
+    map.set(today, []); // ensure today exists even with no events
     for (const ev of events) {
       const bucket = map.get(ev.date) ?? [];
       bucket.push(ev);
       map.set(ev.date, bucket);
     }
-    return [...map.entries()].map(([date, evts]) => ({ date, events: evts }));
-  }, [events]);
+    return [...map.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, evts]) => ({ date, events: evts }));
+  }, [events, today]);
 
   useImperativeHandle(
     ref,
     () => ({
+      scrollToToday() {
+        todayGroupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
       buildExportSVG() {
         const vars = buildCSSVarMap();
         const c = {
@@ -233,6 +247,7 @@ export const TimelineChart = forwardRef<TimelineChartHandle, Props>(function Tim
 
         let totalH = PAD_Y;
         for (const { events: evts } of grouped) {
+          if (evts.length === 0) continue; // skip empty today in export
           totalH += SECTION_H + evts.length * EVENT_H + SECTION_GAP;
         }
         totalH += PAD_Y;
@@ -250,6 +265,7 @@ export const TimelineChart = forwardRef<TimelineChartHandle, Props>(function Tim
         let y = PAD_Y;
 
         for (const { date, events: dayEvents } of grouped) {
+          if (dayEvents.length === 0) continue; // skip empty today in export
           const isToday = date === today2;
           const separatorY = y + SECTION_H / 2;
 
@@ -394,22 +410,16 @@ export const TimelineChart = forwardRef<TimelineChartHandle, Props>(function Tim
     );
   }
 
-  if (events.length === 0) {
-    return (
-      <div className={styles.empty} data-testid="timeline-no-results">
-        <p>No events match the current filters.</p>
-      </div>
-    );
-  }
-
   const totalSubtasks = new Set(events.map((e) => e.subtaskId)).size;
 
   return (
     <div className={styles.wrap} data-testid="timeline-chart">
-      <div className={styles.summary}>
-        <span className={styles.mono}>{events.length}</span> events across{' '}
-        <span className={styles.mono}>{totalSubtasks}</span> subtasks
-      </div>
+      {events.length > 0 && (
+        <div className={styles.summary}>
+          <span className={styles.mono}>{events.length}</span> events across{' '}
+          <span className={styles.mono}>{totalSubtasks}</span> subtasks
+        </div>
+      )}
 
       <div className={styles.list}>
         {grouped.map(({ date, events: dayEvents }) => (
@@ -419,6 +429,7 @@ export const TimelineChart = forwardRef<TimelineChartHandle, Props>(function Tim
             events={dayEvents}
             isToday={date === today}
             isPast={date < today}
+            sectionRef={date === today ? todayGroupRef : undefined}
           />
         ))}
       </div>

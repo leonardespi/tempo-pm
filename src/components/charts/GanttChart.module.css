@@ -263,3 +263,44 @@
 .emptyHint {
   font-size: 13px;
 }
+
+/* ── Week / non-working shading (theme-aware) ── */
+.weekBandOdd {
+  fill: rgba(0, 0, 0, 0.04);
+}
+.weekBandOddBody {
+  fill: rgba(0, 0, 0, 0.02);
+}
+.nonWorkAxis {
+  fill: rgba(0, 0, 0, 0.07);
+}
+.nonWorkBody {
+  fill: rgba(0, 0, 0, 0.055);
+}
+
+:global([data-theme='dark']) .weekBandOdd {
+  fill: rgba(255, 255, 255, 0.04);
+}
+:global([data-theme='dark']) .weekBandOddBody {
+  fill: rgba(255, 255, 255, 0.03);
+}
+:global([data-theme='dark']) .nonWorkAxis {
+  fill: rgba(255, 255, 255, 0.1);
+}
+:global([data-theme='dark']) .nonWorkBody {
+  fill: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Bar labels ── */
+.barLabelInside {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  fill: rgba(255, 255, 255, 0.92);
+}
+
+.barLabelOutside {
+  font-family: var(--font-body);
+  font-size: 10px;
+  fill: var(--color-text);
+}

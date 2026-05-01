@@ -7,7 +7,7 @@ const DEFAULT_DATA: AppData = {
   subtasks: [],
   users: [],
   workingDays: { weekends: [0, 6], holidays: [] },
-  settings: { theme: 'system' },
+  settings: { theme: 'system', dailyCapacity: 5 },
 };
 
 type AppStore = AppData & {
@@ -57,7 +57,12 @@ export const useStore = create<AppStore>((set, get) => ({
       if (!res.ok) throw new Error(`Server error ${res.status}`);
       const raw = (await res.json()) as AppData & { _restoredFromBackup?: number | null };
       const { _restoredFromBackup, ...data } = raw;
-      set({ ...data, isLoading: false, hasLoaded: true });
+      set({
+        ...data,
+        settings: { ...DEFAULT_DATA.settings, ...data.settings },
+        isLoading: false,
+        hasLoaded: true,
+      });
       if (_restoredFromBackup !== null && _restoredFromBackup !== undefined) {
         get().showToast(
           `Data restored from backup ${_restoredFromBackup} (main file was corrupt).`,

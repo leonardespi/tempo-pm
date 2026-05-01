@@ -138,7 +138,7 @@ describe('buildBurnoutData', () => {
       status: 'done',
       assigneeId: 'u1',
     };
-    const result = buildBurnoutData(projects, tasks, [sub], [], STD_CONFIG, '');
+    const result = buildBurnoutData(projects, tasks, [sub], [], STD_CONFIG, '', 5);
     expect(result.rows).toHaveLength(0);
     expect(result.allWeeks).toHaveLength(0);
   });
@@ -154,7 +154,7 @@ describe('buildBurnoutData', () => {
       status: 'done',
       // no assigneeId
     };
-    const result = buildBurnoutData(projects, tasks, [sub], users, STD_CONFIG, '');
+    const result = buildBurnoutData(projects, tasks, [sub], users, STD_CONFIG, '', 5);
     expect(result.rows).toHaveLength(0);
   });
 
@@ -182,7 +182,15 @@ describe('buildBurnoutData', () => {
         assigneeId: 'u1',
       },
     ];
-    const { rows, allWeeks } = buildBurnoutData(projects, tasks, subs, [users[0]], STD_CONFIG, '');
+    const { rows, allWeeks } = buildBurnoutData(
+      projects,
+      tasks,
+      subs,
+      [users[0]],
+      STD_CONFIG,
+      '',
+      5,
+    );
 
     expect(allWeeks).toContain('2026-04-06');
     expect(allWeeks).toContain('2026-04-13');
@@ -193,13 +201,13 @@ describe('buildBurnoutData', () => {
     const week1 = alice.weeks.find((w) => w.weekStart === '2026-04-06');
     const week2 = alice.weeks.find((w) => w.weekStart === '2026-04-13');
 
-    // Week Apr 6: 5×(5/5) + 10×(3/5) = 5 + 6 = 11 → ratio 1.1
+    // Week Apr 6: 5×(5/5) + 10×(3/5) = 5 + 6 = 11 → ratio 11/25 = 0.44
     expect(week1?.effortPts).toBeCloseTo(11.0, 4);
-    expect(week1?.loadRatio).toBeCloseTo(1.1, 4);
+    expect(week1?.loadRatio).toBeCloseTo(0.44, 4);
 
-    // Week Apr 13: 10×(2/5) = 4 → ratio 0.4
+    // Week Apr 13: 10×(2/5) = 4 → ratio 4/25 = 0.16
     expect(week2?.effortPts).toBeCloseTo(4.0, 4);
-    expect(week2?.loadRatio).toBeCloseTo(0.4, 4);
+    expect(week2?.loadRatio).toBeCloseTo(0.16, 4);
   });
 
   it('filters by project correctly', () => {
@@ -240,6 +248,7 @@ describe('buildBurnoutData', () => {
       [users[0]],
       STD_CONFIG,
       'p1',
+      5,
     );
     const week = rows[0]?.weeks.find((w) => w.weekStart === '2026-04-06');
     // Only p1 sub (5 pts) should count
@@ -269,7 +278,7 @@ describe('buildBurnoutData', () => {
         assigneeId: 'u1',
       },
     ];
-    const { rows } = buildBurnoutData(projects, tasks, subs, [users[0]], STD_CONFIG, '');
+    const { rows } = buildBurnoutData(projects, tasks, subs, [users[0]], STD_CONFIG, '', 5);
     const week = rows[0]?.weeks.find((w) => w.weekStart === '2026-04-06');
     expect(week?.segments).toHaveLength(2);
     const names = week?.segments.map((s) => s.subtaskName);

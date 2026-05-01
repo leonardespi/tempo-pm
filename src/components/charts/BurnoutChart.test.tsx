@@ -42,7 +42,16 @@ const subtasks: Subtask[] = [
   },
 ];
 
-const base = { projects, tasks, subtasks, users, workingDays, filterProjectId: '' };
+const base = {
+  projects,
+  tasks,
+  subtasks,
+  users,
+  workingDays,
+  filterProjectId: '',
+  filterUserId: '',
+  dailyCapacity: 5,
+};
 
 describe('BurnoutChart', () => {
   it('shows empty state when there are no users', () => {

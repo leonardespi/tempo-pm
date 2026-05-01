@@ -216,6 +216,16 @@
   flex-shrink: 0;
 }
 
+/* ── Lonely today message ── */
+.lonelyMsg {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: 10px 0 4px;
+  text-align: center;
+  opacity: 0.8;
+}
+
 /* ── Empty state ── */
 .empty {
   display: flex;

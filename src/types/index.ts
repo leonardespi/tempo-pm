@@ -51,7 +51,7 @@ export type AppData = {
   subtasks: Subtask[];
   users: User[];
   workingDays: WorkingDaysConfig;
-  settings: { theme: 'light' | 'dark' | 'system' };
+  settings: { theme: 'light' | 'dark' | 'system'; dailyCapacity: number };
 };
 
 export type Theme = 'light' | 'dark' | 'system';
