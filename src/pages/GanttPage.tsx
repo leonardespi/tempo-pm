@@ -10,8 +10,11 @@ export default function GanttPage() {
   const subtasks = useStore((s) => s.subtasks);
   const users = useStore((s) => s.users);
   const workingDays = useStore((s) => s.workingDays);
+  const view = useStore((s) => s.chartViews.gantt);
+  const setGanttView = useStore((s) => s.setGanttView);
+  const filterProjectId = view.filterProjectId;
+  const setFilterProjectId = (id: string) => setGanttView({ filterProjectId: id });
 
-  const [filterProjectId, setFilterProjectId] = useState<string>('');
   const [exporting, setExporting] = useState(false);
   const chartRef = useRef<GanttChartHandle>(null);
 
@@ -95,6 +98,10 @@ export default function GanttPage() {
           subtasks={visibleSubtasks}
           users={users}
           workingDays={workingDays}
+          zoom={view.zoom}
+          onZoomChange={(z) => setGanttView({ zoom: z })}
+          collapsedIds={view.collapsed}
+          onCollapsedChange={(ids) => setGanttView({ collapsed: ids })}
         />
       </div>
     </div>

@@ -27,7 +27,7 @@ const BAR_VPAD = 7;
 const BAR_R = 3;
 
 const ZOOM_PX = { day: 40, week: 14, month: 5 } as const;
-type Zoom = keyof typeof ZOOM_PX;
+export type Zoom = keyof typeof ZOOM_PX;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -167,15 +167,39 @@ type Props = {
   subtasks: Subtask[];
   users: User[];
   workingDays: WorkingDaysConfig;
+  zoom?: Zoom;
+  onZoomChange?: (zoom: Zoom) => void;
+  collapsedIds?: string[];
+  onCollapsedChange?: (ids: string[]) => void;
 };
 
 export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChart(
-  { projects, tasks, subtasks, users, workingDays },
+  {
+    projects,
+    tasks,
+    subtasks,
+    users,
+    workingDays,
+    zoom: zoomProp,
+    onZoomChange,
+    collapsedIds,
+    onCollapsedChange,
+  },
   ref,
 ) {
-  const [zoom, setZoom] = useState<Zoom>('week');
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [zoomLocal, setZoomLocal] = useState<Zoom>('week');
+  const [collapsedLocal, setCollapsedLocal] = useState<Set<string>>(new Set());
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+
+  const zoom = zoomProp ?? zoomLocal;
+  const setZoom = (z: Zoom) => {
+    if (onZoomChange) onZoomChange(z);
+    else setZoomLocal(z);
+  };
+  const collapsed = useMemo(
+    () => (collapsedIds ? new Set(collapsedIds) : collapsedLocal),
+    [collapsedIds, collapsedLocal],
+  );
 
   const chartRef = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
@@ -232,7 +256,9 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
     let y = 0;
 
     for (const project of projects) {
-      const projBar = makeBar(project.startDate, project.endDate, 'var(--color-accent)');
+      const projAssignee = project.assigneeId ? userMap.get(project.assigneeId) : undefined;
+      const projColor = projAssignee?.color ?? 'var(--color-accent)';
+      const projBar = makeBar(project.startDate, project.endDate, projColor);
       const projSubs = subtasks.filter((s) =>
         tasks.some((t) => t.projectId === project.id && t.id === s.taskId),
       );
@@ -250,6 +276,7 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
         bar: projBar,
         startDate: project.startDate,
         endDate: project.endDate,
+        assigneeName: projAssignee?.name,
         completion: projCompletion,
       });
       y += PROJECT_H;
@@ -557,20 +584,21 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
   }, []);
 
   // ── Collapse toggle ──────────────────────────────────────────────────────────
-  const toggleCollapse = useCallback((id: string) => {
-    setCollapsed((prev) => {
-      const next = new Set(prev);
+  const toggleCollapse = useCallback(
+    (id: string) => {
+      const current = collapsedIds ? new Set(collapsedIds) : collapsedLocal;
+      const next = new Set(current);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      return next;
-    });
-  }, []);
+      if (onCollapsedChange) onCollapsedChange([...next]);
+      else setCollapsedLocal(next);
+    },
+    [collapsedIds, collapsedLocal, onCollapsedChange],
+  );
 
   // ── Tooltip from bar hover ────────────────────────────────────────────────────
   const handleBarEnter = useCallback((row: RowData, e: RMouseEvent<SVGRectElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const containerRect = chartRef.current?.getBoundingClientRect();
-    if (!containerRect) return;
     setTooltip({
       name: row.label,
       assigneeName: row.assigneeName,
@@ -578,8 +606,8 @@ export const GanttChart = forwardRef<GanttChartHandle, Props>(function GanttChar
       endDate: row.endDate,
       effortPoints: row.kind === 'subtask' ? row.effortPoints : undefined,
       status: row.kind === 'subtask' ? row.status : undefined,
-      x: rect.left - containerRect.left + rect.width / 2,
-      y: rect.top - containerRect.top - 8,
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8,
     });
   }, []);
 

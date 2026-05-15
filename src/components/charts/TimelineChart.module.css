@@ -94,6 +94,7 @@
   font-size: 13px;
   transition: border-color 0.12s;
   box-shadow: var(--shadow-card);
+  cursor: pointer;
 }
 
 .eventRow:hover {
@@ -132,6 +133,10 @@
 .kindEnd {
   background: var(--color-bg-muted);
   color: var(--color-text-muted);
+}
+.kindDueToday {
+  background: rgba(192, 57, 43, 0.15);
+  color: #c0392b;
 }
 
 /* Main info */

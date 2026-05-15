@@ -2,6 +2,7 @@ import {
   useMemo,
   useState,
   useRef,
+  useEffect,
   useCallback,
   forwardRef,
   useImperativeHandle,
@@ -25,7 +26,7 @@ export interface WorkloadChartHandle {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const BAR_W = 32; // multi-user weekly bar width
-const BAR_W_DAY = 18; // multi-user daily bar width
+const BAR_W_DAY = 28; // multi-user daily bar width
 const BAR_W_FOCUSED = 80; // single-user focused bar width (any mode)
 const BAR_GAP = 6; // gap between bars in the same group (multi-user)
 const BAR_GAP_DAY = 4; // smaller gap for day-mode multi-user
@@ -34,7 +35,6 @@ const DAY_GAP = 8; // gap between day groups
 const CHART_H = 320;
 const AXIS_B = 36;
 const AXIS_L = 48;
-const SVG_H = CHART_H + AXIS_B;
 const TOP_PAD = 16;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -235,12 +235,24 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
   ref,
 ) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   useImperativeHandle(ref, () => ({
     getSVGElement: () => svgRef.current,
   }));
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      setContainerSize({ width, height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const userMap = useMemo(() => new Map(users.map((u) => [u.id, u])), [users]);
 
@@ -273,15 +285,33 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
   const barGap = isDay && !isFocused ? BAR_GAP_DAY : BAR_GAP;
   const colGap = isDay ? DAY_GAP : WEEK_GAP;
   const displayedCount = displayedUsers.length;
-  const weekGroupW = displayedCount * barW + Math.max(0, displayedCount - 1) * barGap + colGap;
+
+  // Expand chart height to fill the container
+  const effectiveChartH =
+    containerSize.height > 0 ? Math.max(200, containerSize.height - AXIS_B - TOP_PAD) : CHART_H;
+
+  // Expand bar width so columns fill the container width
+  const effectiveBarW =
+    containerSize.width > 0 && columns.length > 0
+      ? Math.max(
+          barW,
+          ((containerSize.width - AXIS_L) / columns.length -
+            Math.max(0, displayedCount - 1) * barGap -
+            colGap) /
+            displayedCount,
+        )
+      : barW;
+
+  const weekGroupW =
+    displayedCount * effectiveBarW + Math.max(0, displayedCount - 1) * barGap + colGap;
   const svgWidth = AXIS_L + columns.length * weekGroupW;
 
   function effortToY(effort: number): number {
-    return TOP_PAD + ((yMax - effort) / yMax) * CHART_H;
+    return TOP_PAD + ((yMax - effort) / yMax) * effectiveChartH;
   }
 
   function effortToH(effort: number): number {
-    return (effort / yMax) * CHART_H;
+    return (effort / yMax) * effectiveChartH;
   }
 
   const handleBarHover = useCallback(
@@ -336,7 +366,7 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
     );
   }
 
-  const barsContentW = displayedCount * barW + Math.max(0, displayedCount - 1) * barGap;
+  const barsContentW = displayedCount * effectiveBarW + Math.max(0, displayedCount - 1) * barGap;
 
   return (
     <div className={styles.wrap} data-testid="workload-chart">
@@ -355,7 +385,7 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
         <svg
           ref={svgRef}
           width={svgWidth}
-          height={SVG_H + TOP_PAD}
+          height={effectiveChartH + AXIS_B + TOP_PAD}
           style={{ display: 'block', overflow: 'visible' }}
           onMouseLeave={() => setTooltip(null)}
           aria-label="Workload chart"
@@ -385,10 +415,10 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
           {/* Y-axis label */}
           <text
             x={10}
-            y={TOP_PAD + CHART_H / 2}
+            y={TOP_PAD + effectiveChartH / 2}
             className={styles.axisTitle}
             textAnchor="middle"
-            transform={`rotate(-90, 10, ${TOP_PAD + CHART_H / 2})`}
+            transform={`rotate(-90, 10, ${TOP_PAD + effectiveChartH / 2})`}
           >
             Effort pts
           </text>
@@ -402,7 +432,7 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
                 {/* Bucket label (bottom axis) */}
                 <text
                   x={colX + barsContentW / 2}
-                  y={SVG_H + TOP_PAD - 4}
+                  y={effectiveChartH + AXIS_B + TOP_PAD - 4}
                   className={styles.xLabel}
                   textAnchor="middle"
                 >
@@ -413,7 +443,7 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
                 {col.userBars.map((bar, ui) => {
                   const user = userMap.get(bar.userId);
                   if (!user || bar.totalEffort === 0) return null;
-                  const barX = colX + ui * (barW + barGap);
+                  const barX = colX + ui * (effectiveBarW + barGap);
                   const barH = effortToH(bar.totalEffort);
                   const barY = effortToY(bar.totalEffort);
 
@@ -433,7 +463,7 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
                           key={si}
                           x={barX}
                           y={seg.y}
-                          width={barW}
+                          width={effectiveBarW}
                           height={Math.max(seg.h, 1)}
                           fill={user.color}
                           opacity={seg.opacity}
@@ -445,11 +475,11 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
                       <rect
                         x={barX}
                         y={barY}
-                        width={barW}
+                        width={effectiveBarW}
                         height={barH}
                         fill="transparent"
                         className={styles.hoverTarget}
-                        onMouseEnter={(e) => handleBarHover(e, col, bar, barX, barW)}
+                        onMouseEnter={(e) => handleBarHover(e, col, bar, barX, effectiveBarW)}
                         onMouseLeave={() => setTooltip(null)}
                         aria-label={`${user.name}: ${bar.totalEffort.toFixed(1)} pts`}
                       />
@@ -465,13 +495,11 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
         {tooltip && (
           <div
             className={styles.tooltip}
-            style={{
-              left:
-                window.innerWidth - tooltip.barRight >= 260
-                  ? tooltip.barRight + 8
-                  : tooltip.barLeft - 260,
-              top: tooltip.y - 8,
-            }}
+            style={
+              window.innerWidth - tooltip.barRight >= 260
+                ? { left: tooltip.barRight + 8, top: tooltip.y - 8 }
+                : { right: window.innerWidth - tooltip.barLeft + 8, top: tooltip.y - 8 }
+            }
             role="tooltip"
           >
             <div className={styles.tooltipHeader}>

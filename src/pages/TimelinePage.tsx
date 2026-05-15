@@ -9,9 +9,13 @@ export default function TimelinePage() {
   const tasks = useStore((s) => s.tasks);
   const subtasks = useStore((s) => s.subtasks);
   const users = useStore((s) => s.users);
+  const view = useStore((s) => s.chartViews.timeline);
+  const setTimelineView = useStore((s) => s.setTimelineView);
+  const filterProjectId = view.filterProjectId;
+  const filterAssigneeId = view.filterAssigneeId;
+  const setFilterProjectId = (id: string) => setTimelineView({ filterProjectId: id });
+  const setFilterAssigneeId = (id: string) => setTimelineView({ filterAssigneeId: id });
 
-  const [filterProjectId, setFilterProjectId] = useState('');
-  const [filterAssigneeId, setFilterAssigneeId] = useState('');
   const [exporting, setExporting] = useState(false);
   const chartRef = useRef<TimelineChartHandle>(null);
 

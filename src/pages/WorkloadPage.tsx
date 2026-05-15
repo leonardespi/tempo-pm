@@ -10,10 +10,15 @@ export default function WorkloadPage() {
   const subtasks = useStore((s) => s.subtasks);
   const users = useStore((s) => s.users);
   const workingDays = useStore((s) => s.workingDays);
+  const view = useStore((s) => s.chartViews.workload);
+  const setWorkloadView = useStore((s) => s.setWorkloadView);
+  const filterProjectId = view.filterProjectId;
+  const filterUserId = view.filterUserId;
+  const viewMode = view.viewMode;
+  const setFilterProjectId = (id: string) => setWorkloadView({ filterProjectId: id });
+  const setFilterUserId = (id: string) => setWorkloadView({ filterUserId: id });
+  const setViewMode = (m: 'week' | 'day') => setWorkloadView({ viewMode: m });
 
-  const [filterProjectId, setFilterProjectId] = useState('');
-  const [filterUserId, setFilterUserId] = useState('');
-  const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
   const [exporting, setExporting] = useState(false);
   const chartRef = useRef<WorkloadChartHandle>(null);
 

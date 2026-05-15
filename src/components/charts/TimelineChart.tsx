@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Project, Task, Subtask, User, SubtaskStatus } from '@/types';
 import { toISO } from '@/utils/workingDays';
 import { buildCSSVarMap, makeSVGEl, todayISO } from '@/utils/exportChart';
@@ -15,6 +16,7 @@ type TLEvent = {
   id: string;
   date: string;
   kind: 'start' | 'end';
+  dueToday: boolean;
   subtaskId: string;
   subtaskName: string;
   taskName: string;
@@ -53,6 +55,7 @@ function buildEvents(
   users: User[],
   filterProjectId: string,
   filterAssigneeId: string,
+  today: string,
 ): TLEvent[] {
   const projectMap = new Map(projects.map((p) => [p.id, p]));
   const taskMap = new Map(tasks.map((t) => [t.id, t]));
@@ -69,6 +72,8 @@ function buildEvents(
     if (filterAssigneeId && sub.assigneeId !== filterAssigneeId) continue;
 
     const assignee = sub.assigneeId ? userMap.get(sub.assigneeId) : undefined;
+    const endsToday = sub.endDate === today;
+    const isOneDay = sub.startDate === sub.endDate;
 
     const shared = {
       subtaskId: sub.id,
@@ -83,10 +88,22 @@ function buildEvents(
       status: sub.status,
     };
 
-    result.push({ id: `${sub.id}-start`, date: sub.startDate, kind: 'start', ...shared });
+    result.push({
+      id: `${sub.id}-start`,
+      date: sub.startDate,
+      kind: 'start',
+      dueToday: isOneDay && endsToday,
+      ...shared,
+    });
     // Only add end event if distinct from start
     if (sub.endDate !== sub.startDate) {
-      result.push({ id: `${sub.id}-end`, date: sub.endDate, kind: 'end', ...shared });
+      result.push({
+        id: `${sub.id}-end`,
+        date: sub.endDate,
+        kind: 'end',
+        dueToday: endsToday,
+        ...shared,
+      });
     }
   }
 
@@ -101,16 +118,31 @@ function buildEvents(
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function EventRow({ event }: { event: TLEvent }) {
+  const navigate = useNavigate();
   return (
-    <div className={styles.eventRow} data-testid="timeline-event">
+    <div
+      className={styles.eventRow}
+      data-testid="timeline-event"
+      onClick={() => navigate(`/projects/${event.projectId}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/projects/${event.projectId}`)}
+      aria-label={`Open project ${event.projectName}`}
+    >
       <div
         className={`${styles.dot} ${event.kind === 'start' ? styles.dotStart : styles.dotEnd}`}
       />
 
       <span
-        className={`${styles.kindBadge} ${event.kind === 'start' ? styles.kindStart : styles.kindEnd}`}
+        className={`${styles.kindBadge} ${
+          event.dueToday
+            ? styles.kindDueToday
+            : event.kind === 'start'
+              ? styles.kindStart
+              : styles.kindEnd
+        }`}
       >
-        {event.kind === 'start' ? 'Start' : 'End'}
+        {event.dueToday ? 'Due today' : event.kind === 'start' ? 'Start' : 'End'}
       </span>
 
       <div className={styles.eventMain}>
@@ -204,8 +236,8 @@ export const TimelineChart = forwardRef<TimelineChartHandle, Props>(function Tim
   const todayGroupRef = useRef<HTMLDivElement>(null);
 
   const events = useMemo(
-    () => buildEvents(projects, tasks, subtasks, users, filterProjectId, filterAssigneeId),
-    [projects, tasks, subtasks, users, filterProjectId, filterAssigneeId],
+    () => buildEvents(projects, tasks, subtasks, users, filterProjectId, filterAssigneeId, today),
+    [projects, tasks, subtasks, users, filterProjectId, filterAssigneeId, today],
   );
 
   // Group by date — today is always injected so it's always visible
@@ -308,7 +340,7 @@ export const TimelineChart = forwardRef<TimelineChartHandle, Props>(function Tim
           y += SECTION_H;
 
           for (const ev of dayEvents) {
-            const dotColor = ev.kind === 'start' ? '#22c55e' : '#3b82f6';
+            const dotColor = ev.dueToday ? '#c0392b' : ev.kind === 'start' ? '#22c55e' : '#3b82f6';
             const midY = y + EVENT_H / 2;
 
             // Dot
@@ -323,7 +355,7 @@ export const TimelineChart = forwardRef<TimelineChartHandle, Props>(function Tim
               'font-family': 'Helvetica, Arial, sans-serif',
               'font-weight': 700,
             });
-            kindEl.textContent = ev.kind === 'start' ? 'Start' : 'End';
+            kindEl.textContent = ev.dueToday ? 'Due today' : ev.kind === 'start' ? 'Start' : 'End';
             svg.appendChild(kindEl);
 
             // Subtask name (truncated)

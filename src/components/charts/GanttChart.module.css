@@ -211,7 +211,7 @@
 
 /* ── Tooltip ── */
 .tooltip {
-  position: absolute;
+  position: fixed;
   pointer-events: none;
   z-index: 10;
   background: var(--color-bg-card);
