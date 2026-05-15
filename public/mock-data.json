@@ -1,0 +1,534 @@
+{
+  "projects": [
+    {
+      "id": "proj-001",
+      "name": "Website Redesign",
+      "description": "Complete overhaul of the company website with new UX and branding.",
+      "createdAt": "2026-03-20T10:00:00.000Z",
+      "startDate": "2026-04-01",
+      "endDate": "2026-07-31",
+      "assigneeId": "user-001"
+    },
+    {
+      "id": "proj-002",
+      "name": "Mobile App MVP",
+      "description": "First release of our cross-platform mobile application.",
+      "createdAt": "2026-03-01T10:00:00.000Z",
+      "startDate": "2026-03-15",
+      "endDate": "2026-06-30",
+      "assigneeId": "user-002"
+    },
+    {
+      "id": "proj-003",
+      "name": "Backend API v2",
+      "description": "Rebuild of the backend API with improved performance and new endpoints.",
+      "createdAt": "2026-04-15T10:00:00.000Z",
+      "startDate": "2026-05-01",
+      "endDate": "2026-08-15",
+      "assigneeId": "user-003"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-001",
+      "projectId": "proj-001",
+      "name": "Discovery & Research",
+      "assigneeId": "user-001",
+      "startDate": "2026-04-01",
+      "endDate": "2026-04-30",
+      "dependsOn": []
+    },
+    {
+      "id": "task-002",
+      "projectId": "proj-001",
+      "name": "UX Design",
+      "assigneeId": "user-003",
+      "startDate": "2026-04-15",
+      "endDate": "2026-05-31",
+      "dependsOn": ["task-001"]
+    },
+    {
+      "id": "task-003",
+      "projectId": "proj-001",
+      "name": "Frontend Development",
+      "assigneeId": "user-002",
+      "startDate": "2026-05-01",
+      "endDate": "2026-07-15",
+      "dependsOn": ["task-002"]
+    },
+    {
+      "id": "task-004",
+      "projectId": "proj-001",
+      "name": "Testing & QA",
+      "assigneeId": "user-004",
+      "startDate": "2026-07-01",
+      "endDate": "2026-07-31",
+      "dependsOn": ["task-003"]
+    },
+    {
+      "id": "task-005",
+      "projectId": "proj-002",
+      "name": "Architecture Design",
+      "assigneeId": "user-003",
+      "startDate": "2026-03-15",
+      "endDate": "2026-04-15",
+      "dependsOn": []
+    },
+    {
+      "id": "task-006",
+      "projectId": "proj-002",
+      "name": "Core Features",
+      "assigneeId": "user-002",
+      "startDate": "2026-04-01",
+      "endDate": "2026-06-15",
+      "dependsOn": ["task-005"]
+    },
+    {
+      "id": "task-007",
+      "projectId": "proj-002",
+      "name": "User Testing",
+      "assigneeId": "user-001",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-30",
+      "dependsOn": ["task-006"]
+    },
+    {
+      "id": "task-008",
+      "projectId": "proj-003",
+      "name": "API Design",
+      "assigneeId": "user-003",
+      "startDate": "2026-05-01",
+      "endDate": "2026-05-31",
+      "dependsOn": []
+    },
+    {
+      "id": "task-009",
+      "projectId": "proj-003",
+      "name": "Authentication Module",
+      "assigneeId": "user-004",
+      "startDate": "2026-05-15",
+      "endDate": "2026-06-30",
+      "dependsOn": ["task-008"]
+    },
+    {
+      "id": "task-010",
+      "projectId": "proj-003",
+      "name": "Data Pipeline",
+      "assigneeId": "user-001",
+      "startDate": "2026-06-01",
+      "endDate": "2026-07-31",
+      "dependsOn": ["task-009"]
+    }
+  ],
+  "subtasks": [
+    {
+      "id": "sub-001",
+      "taskId": "task-001",
+      "name": "Competitor Analysis",
+      "assigneeId": "user-001",
+      "startDate": "2026-04-01",
+      "endDate": "2026-04-10",
+      "effortPoints": 8,
+      "status": "done"
+    },
+    {
+      "id": "sub-002",
+      "taskId": "task-001",
+      "name": "User Interviews",
+      "assigneeId": "user-001",
+      "startDate": "2026-04-07",
+      "endDate": "2026-04-18",
+      "effortPoints": 10,
+      "status": "done"
+    },
+    {
+      "id": "sub-003",
+      "taskId": "task-001",
+      "name": "Requirements Document",
+      "assigneeId": "user-001",
+      "startDate": "2026-04-15",
+      "endDate": "2026-04-30",
+      "effortPoints": 6,
+      "status": "done"
+    },
+    {
+      "id": "sub-004",
+      "taskId": "task-002",
+      "name": "Wireframes",
+      "assigneeId": "user-003",
+      "startDate": "2026-04-15",
+      "endDate": "2026-04-30",
+      "effortPoints": 10,
+      "status": "done"
+    },
+    {
+      "id": "sub-005",
+      "taskId": "task-002",
+      "name": "Prototype v1",
+      "assigneeId": "user-003",
+      "startDate": "2026-05-01",
+      "endDate": "2026-05-15",
+      "effortPoints": 12,
+      "status": "in_progress"
+    },
+    {
+      "id": "sub-006",
+      "taskId": "task-002",
+      "name": "User Testing Rounds",
+      "assigneeId": "user-001",
+      "startDate": "2026-05-12",
+      "endDate": "2026-05-22",
+      "effortPoints": 8,
+      "status": "in_progress"
+    },
+    {
+      "id": "sub-007",
+      "taskId": "task-002",
+      "name": "Final Mockups",
+      "assigneeId": "user-003",
+      "startDate": "2026-05-20",
+      "endDate": "2026-05-31",
+      "effortPoints": 8,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-008",
+      "taskId": "task-003",
+      "name": "Setup & Architecture",
+      "assigneeId": "user-002",
+      "startDate": "2026-05-01",
+      "endDate": "2026-05-09",
+      "effortPoints": 6,
+      "status": "done"
+    },
+    {
+      "id": "sub-009",
+      "taskId": "task-003",
+      "name": "Homepage & Navigation",
+      "assigneeId": "user-002",
+      "startDate": "2026-05-05",
+      "endDate": "2026-05-23",
+      "effortPoints": 15,
+      "status": "in_progress"
+    },
+    {
+      "id": "sub-010",
+      "taskId": "task-003",
+      "name": "Product Pages",
+      "assigneeId": "user-002",
+      "startDate": "2026-05-20",
+      "endDate": "2026-06-13",
+      "effortPoints": 18,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-011",
+      "taskId": "task-003",
+      "name": "Integration & Polish",
+      "assigneeId": "user-002",
+      "startDate": "2026-06-16",
+      "endDate": "2026-07-15",
+      "effortPoints": 20,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-012",
+      "taskId": "task-004",
+      "name": "Test Plan",
+      "assigneeId": "user-004",
+      "startDate": "2026-07-01",
+      "endDate": "2026-07-07",
+      "effortPoints": 5,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-013",
+      "taskId": "task-004",
+      "name": "Regression Testing",
+      "assigneeId": "user-004",
+      "startDate": "2026-07-07",
+      "endDate": "2026-07-21",
+      "effortPoints": 12,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-014",
+      "taskId": "task-004",
+      "name": "Bug Fixes Validation",
+      "assigneeId": "user-004",
+      "startDate": "2026-07-21",
+      "endDate": "2026-07-31",
+      "effortPoints": 8,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-015",
+      "taskId": "task-005",
+      "name": "System Design Doc",
+      "assigneeId": "user-003",
+      "startDate": "2026-03-15",
+      "endDate": "2026-03-25",
+      "effortPoints": 8,
+      "status": "done"
+    },
+    {
+      "id": "sub-016",
+      "taskId": "task-005",
+      "name": "Tech Stack Selection",
+      "assigneeId": "user-003",
+      "startDate": "2026-03-20",
+      "endDate": "2026-04-01",
+      "effortPoints": 5,
+      "status": "done"
+    },
+    {
+      "id": "sub-017",
+      "taskId": "task-005",
+      "name": "Database Schema",
+      "assigneeId": "user-003",
+      "startDate": "2026-03-28",
+      "endDate": "2026-04-15",
+      "effortPoints": 10,
+      "status": "done"
+    },
+    {
+      "id": "sub-018",
+      "taskId": "task-006",
+      "name": "Authentication UI",
+      "assigneeId": "user-002",
+      "startDate": "2026-04-01",
+      "endDate": "2026-04-18",
+      "effortPoints": 10,
+      "status": "done"
+    },
+    {
+      "id": "sub-019",
+      "taskId": "task-006",
+      "name": "Dashboard Screen",
+      "assigneeId": "user-002",
+      "startDate": "2026-04-15",
+      "endDate": "2026-05-08",
+      "effortPoints": 12,
+      "status": "done"
+    },
+    {
+      "id": "sub-020",
+      "taskId": "task-006",
+      "name": "Profile & Settings",
+      "assigneeId": "user-002",
+      "startDate": "2026-05-01",
+      "endDate": "2026-05-22",
+      "effortPoints": 10,
+      "status": "in_progress"
+    },
+    {
+      "id": "sub-021",
+      "taskId": "task-006",
+      "name": "Notifications",
+      "assigneeId": "user-002",
+      "startDate": "2026-05-12",
+      "endDate": "2026-06-05",
+      "effortPoints": 8,
+      "status": "blocked"
+    },
+    {
+      "id": "sub-022",
+      "taskId": "task-006",
+      "name": "Offline Mode",
+      "assigneeId": "user-002",
+      "startDate": "2026-05-26",
+      "endDate": "2026-06-15",
+      "effortPoints": 15,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-023",
+      "taskId": "task-007",
+      "name": "Beta Recruitment",
+      "assigneeId": "user-001",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-07",
+      "effortPoints": 4,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-024",
+      "taskId": "task-007",
+      "name": "Testing Sessions",
+      "assigneeId": "user-001",
+      "startDate": "2026-06-08",
+      "endDate": "2026-06-21",
+      "effortPoints": 12,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-025",
+      "taskId": "task-007",
+      "name": "Feedback Analysis",
+      "assigneeId": "user-001",
+      "startDate": "2026-06-22",
+      "endDate": "2026-06-30",
+      "effortPoints": 8,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-026",
+      "taskId": "task-008",
+      "name": "Endpoint Mapping",
+      "assigneeId": "user-003",
+      "startDate": "2026-05-01",
+      "endDate": "2026-05-09",
+      "effortPoints": 8,
+      "status": "done"
+    },
+    {
+      "id": "sub-027",
+      "taskId": "task-008",
+      "name": "OpenAPI Spec",
+      "assigneeId": "user-003",
+      "startDate": "2026-05-07",
+      "endDate": "2026-05-16",
+      "effortPoints": 10,
+      "status": "in_progress"
+    },
+    {
+      "id": "sub-028",
+      "taskId": "task-008",
+      "name": "Rate Limiting Design",
+      "assigneeId": "user-003",
+      "startDate": "2026-05-14",
+      "endDate": "2026-05-23",
+      "effortPoints": 6,
+      "status": "in_progress"
+    },
+    {
+      "id": "sub-029",
+      "taskId": "task-008",
+      "name": "Documentation Draft",
+      "assigneeId": "user-003",
+      "startDate": "2026-05-22",
+      "endDate": "2026-05-31",
+      "effortPoints": 5,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-030",
+      "taskId": "task-009",
+      "name": "OAuth Integration",
+      "assigneeId": "user-004",
+      "startDate": "2026-05-15",
+      "endDate": "2026-05-30",
+      "effortPoints": 12,
+      "status": "in_progress"
+    },
+    {
+      "id": "sub-031",
+      "taskId": "task-009",
+      "name": "JWT Implementation",
+      "assigneeId": "user-004",
+      "startDate": "2026-05-22",
+      "endDate": "2026-06-06",
+      "effortPoints": 10,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-032",
+      "taskId": "task-009",
+      "name": "2FA Support",
+      "assigneeId": "user-004",
+      "startDate": "2026-06-07",
+      "endDate": "2026-06-20",
+      "effortPoints": 12,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-033",
+      "taskId": "task-009",
+      "name": "Security Audit",
+      "assigneeId": "user-004",
+      "startDate": "2026-06-21",
+      "endDate": "2026-06-30",
+      "effortPoints": 8,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-034",
+      "taskId": "task-010",
+      "name": "ETL Design",
+      "assigneeId": "user-001",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-14",
+      "effortPoints": 8,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-035",
+      "taskId": "task-010",
+      "name": "Data Ingestion",
+      "assigneeId": "user-001",
+      "startDate": "2026-06-15",
+      "endDate": "2026-06-30",
+      "effortPoints": 12,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-036",
+      "taskId": "task-010",
+      "name": "Transform Layer",
+      "assigneeId": "user-001",
+      "startDate": "2026-07-01",
+      "endDate": "2026-07-18",
+      "effortPoints": 15,
+      "status": "not_started"
+    },
+    {
+      "id": "sub-037",
+      "taskId": "task-010",
+      "name": "Monitoring & Alerting",
+      "assigneeId": "user-001",
+      "startDate": "2026-07-19",
+      "endDate": "2026-07-31",
+      "effortPoints": 8,
+      "status": "not_started"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-001",
+      "name": "Alice Johnson",
+      "email": "alice@example.com",
+      "color": "#c17d52",
+      "weeklyCapacity": 40
+    },
+    {
+      "id": "user-002",
+      "name": "Bob Martinez",
+      "email": "bob@example.com",
+      "color": "#4CAF7D",
+      "weeklyCapacity": 32
+    },
+    {
+      "id": "user-003",
+      "name": "Carol Chen",
+      "email": "carol@example.com",
+      "color": "#3498db",
+      "weeklyCapacity": 40
+    },
+    {
+      "id": "user-004",
+      "name": "David Kim",
+      "email": "david@example.com",
+      "color": "#9b59b6",
+      "weeklyCapacity": 24
+    }
+  ],
+  "workingDays": {
+    "weekends": [0, 6],
+    "holidays": ["2026-05-25", "2026-07-04"]
+  },
+  "settings": {
+    "theme": "system",
+    "dailyCapacity": 8,
+    "prorateEffort": true
+  }
+}
