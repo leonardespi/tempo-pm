@@ -124,6 +124,26 @@
   color: var(--color-accent);
 }
 
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.itemSub {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.item.active .itemSub {
+  color: var(--color-accent);
+  opacity: 0.7;
+}
+
 .empty {
   padding: 28px 16px;
   text-align: center;

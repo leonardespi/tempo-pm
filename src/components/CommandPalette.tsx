@@ -19,7 +19,8 @@ type Item = {
   label: string;
   icon: string;
   to: string;
-  group: 'Navigate' | 'Projects';
+  group: 'Navigate' | 'Projects' | 'Tasks' | 'Subtasks';
+  sub?: string;
 };
 
 type Props = { onClose: () => void };
@@ -30,8 +31,13 @@ export function CommandPalette({ onClose }: Props) {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const projects = useStore((s) => s.projects);
+  const tasks = useStore((s) => s.tasks);
+  const subtasks = useStore((s) => s.subtasks);
 
-  const allItems: Item[] = [
+  const projectMap = new Map(projects.map((p) => [p.id, p]));
+  const taskMap = new Map(tasks.map((t) => [t.id, t]));
+
+  const baseItems: Item[] = [
     ...NAV_ITEMS.map((n) => ({
       id: `nav-${n.to}`,
       label: n.label,
@@ -48,8 +54,38 @@ export function CommandPalette({ onClose }: Props) {
     })),
   ];
 
+  const taskItems: Item[] = tasks.map((t) => {
+    const project = projectMap.get(t.projectId);
+    return {
+      id: `task-${t.id}`,
+      label: t.name,
+      icon: '▤',
+      to: `/projects/${t.projectId}`,
+      group: 'Tasks' as const,
+      sub: project?.name,
+    };
+  });
+
+  const subtaskItems: Item[] = subtasks.map((s) => {
+    const task = taskMap.get(s.taskId);
+    const project = task ? projectMap.get(task.projectId) : undefined;
+    return {
+      id: `sub-${s.id}`,
+      label: s.name,
+      icon: '▫',
+      to: project ? `/projects/${project.id}` : '/',
+      group: 'Subtasks' as const,
+      sub: project && task ? `${project.name} › ${task.name}` : undefined,
+    };
+  });
+
   const q = query.trim().toLowerCase();
-  const filtered = q ? allItems.filter((item) => item.label.toLowerCase().includes(q)) : allItems;
+
+  const filtered: Item[] = q
+    ? [...baseItems, ...taskItems, ...subtaskItems].filter((item) =>
+        item.label.toLowerCase().includes(q),
+      )
+    : baseItems;
 
   const select = useCallback(
     (item: Item) => {
@@ -89,6 +125,8 @@ export function CommandPalette({ onClose }: Props) {
 
   const navFiltered = filtered.filter((i) => i.group === 'Navigate');
   const projFiltered = filtered.filter((i) => i.group === 'Projects');
+  const taskFiltered = filtered.filter((i) => i.group === 'Tasks');
+  const subtaskFiltered = filtered.filter((i) => i.group === 'Subtasks');
 
   let flatIndex = 0;
 
@@ -112,7 +150,10 @@ export function CommandPalette({ onClose }: Props) {
               <span className={styles.itemIcon} aria-hidden="true">
                 {item.icon}
               </span>
-              <span>{item.label}</span>
+              <span className={styles.itemBody}>
+                <span>{item.label}</span>
+                {item.sub && <span className={styles.itemSub}>{item.sub}</span>}
+              </span>
             </button>
           );
         })}
@@ -136,7 +177,7 @@ export function CommandPalette({ onClose }: Props) {
           <input
             ref={inputRef}
             className={styles.input}
-            placeholder="Search projects and pages…"
+            placeholder="Search projects, tasks and pages…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search"
@@ -150,6 +191,8 @@ export function CommandPalette({ onClose }: Props) {
           )}
           {renderGroup('Navigate', navFiltered)}
           {renderGroup('Projects', projFiltered)}
+          {renderGroup('Tasks', taskFiltered)}
+          {renderGroup('Subtasks', subtaskFiltered)}
         </div>
       </div>
     </div>,
