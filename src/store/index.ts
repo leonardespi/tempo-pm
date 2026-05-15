@@ -9,7 +9,56 @@ const DEFAULT_DATA: AppData = {
   subtasks: [],
   users: [],
   workingDays: { weekends: [0, 6], holidays: [] },
-  settings: { theme: 'system', dailyCapacity: 5 },
+  settings: { theme: 'system', dailyCapacity: 5, prorateEffort: false },
+};
+
+// ─── Chart view state (in-memory; persists across page navigation) ────────────
+export type GanttZoom = 'day' | 'week' | 'month';
+export type WorkloadViewMode = 'week' | 'day';
+
+export type GanttView = {
+  filterProjectId: string;
+  zoom: GanttZoom;
+  collapsed: string[]; // ids of collapsed projects/tasks
+};
+
+export type BurnoutView = {
+  filterProjectId: string;
+  filterUserId: string;
+  drilldown: { userId: string; weekStart: string } | null;
+  selectedDay: string | null;
+  sheetHeight: number | null;
+};
+
+export type TimelineView = {
+  filterProjectId: string;
+  filterAssigneeId: string;
+};
+
+export type WorkloadView = {
+  filterProjectId: string;
+  filterUserId: string;
+  viewMode: WorkloadViewMode;
+};
+
+export type ChartViews = {
+  gantt: GanttView;
+  burnout: BurnoutView;
+  timeline: TimelineView;
+  workload: WorkloadView;
+};
+
+const DEFAULT_CHART_VIEWS: ChartViews = {
+  gantt: { filterProjectId: '', zoom: 'week', collapsed: [] },
+  burnout: {
+    filterProjectId: '',
+    filterUserId: '',
+    drilldown: null,
+    selectedDay: null,
+    sheetHeight: null,
+  },
+  timeline: { filterProjectId: '', filterAssigneeId: '' },
+  workload: { filterProjectId: '', filterUserId: '', viewMode: 'week' },
 };
 
 type AppStore = AppData & {
@@ -17,6 +66,11 @@ type AppStore = AppData & {
   hasLoaded: boolean;
   error: string | null;
   toast: { message: string; type: 'info' | 'error' | 'success' } | null;
+  chartViews: ChartViews;
+  setGanttView: (updates: Partial<GanttView>) => void;
+  setBurnoutView: (updates: Partial<BurnoutView>) => void;
+  setTimelineView: (updates: Partial<TimelineView>) => void;
+  setWorkloadView: (updates: Partial<WorkloadView>) => void;
 
   loadData: () => Promise<void>;
   saveData: (data: Partial<AppData>) => Promise<void>;
@@ -49,6 +103,22 @@ export const useStore = create<AppStore>((set, get) => ({
   hasLoaded: false,
   error: null,
   toast: null,
+  chartViews: DEFAULT_CHART_VIEWS,
+
+  setGanttView: (updates) =>
+    set((s) => ({ chartViews: { ...s.chartViews, gantt: { ...s.chartViews.gantt, ...updates } } })),
+  setBurnoutView: (updates) =>
+    set((s) => ({
+      chartViews: { ...s.chartViews, burnout: { ...s.chartViews.burnout, ...updates } },
+    })),
+  setTimelineView: (updates) =>
+    set((s) => ({
+      chartViews: { ...s.chartViews, timeline: { ...s.chartViews.timeline, ...updates } },
+    })),
+  setWorkloadView: (updates) =>
+    set((s) => ({
+      chartViews: { ...s.chartViews, workload: { ...s.chartViews.workload, ...updates } },
+    })),
 
   loadData: (): Promise<void> => {
     if (get().hasLoaded || get().isLoading) return Promise.resolve();

@@ -38,6 +38,7 @@ export type Project = {
   createdAt: string;
   startDate: string;
   endDate: string;
+  assigneeId?: ID;
 };
 
 export type WorkingDaysConfig = {
@@ -51,7 +52,7 @@ export type AppData = {
   subtasks: Subtask[];
   users: User[];
   workingDays: WorkingDaysConfig;
-  settings: { theme: 'light' | 'dark' | 'system'; dailyCapacity: number };
+  settings: { theme: 'light' | 'dark' | 'system'; dailyCapacity: number; prorateEffort: boolean };
 };
 
 export type Theme = 'light' | 'dark' | 'system';
