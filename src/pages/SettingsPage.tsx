@@ -1,7 +1,7 @@
+import { useRef, useState } from 'react';
 import { useStore } from '@/store';
 import { useTheme } from '@/hooks/useTheme';
-import { Button } from '@/components/ui/Button';
-import { FormField } from '@/components/ui/FormField';
+import type { AppData } from '@/types';
 import styles from './SettingsPage.module.css';
 
 export default function SettingsPage() {
@@ -33,74 +33,209 @@ export default function SettingsPage() {
     void saveData({ workingDays: { ...workingDays, weekends } });
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importState, setImportState] = useState<'idle' | 'ok' | 'error'>('idle');
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const raw = JSON.parse(ev.target?.result as string) as Partial<AppData>;
+        if (!Array.isArray(raw.projects) || !Array.isArray(raw.tasks)) throw new Error('invalid');
+        await saveData({
+          projects: raw.projects,
+          tasks: raw.tasks,
+          subtasks: raw.subtasks ?? [],
+          users: raw.users ?? [],
+          ...(raw.workingDays ? { workingDays: raw.workingDays } : {}),
+          ...(raw.settings ? { settings: { ...settings, ...raw.settings } } : {}),
+        });
+        setImportState('ok');
+      } catch {
+        setImportState('error');
+      }
+      e.target.value = '';
+      setTimeout(() => setImportState('idle'), 3000);
+    };
+    reader.readAsText(file);
+  };
+
   const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
     <div className={styles.page}>
-      <h1>Settings</h1>
+      <h1 className={styles.heading}>Settings</h1>
 
+      {/* ── Appearance ── */}
       <section className={styles.section}>
-        <h3>Theme</h3>
-        <div className={styles.themeRow}>
-          {(['light', 'dark', 'system'] as const).map((t) => (
-            <Button
-              key={t}
-              variant={theme === t ? 'primary' : 'secondary'}
-              onClick={() => void setTheme(t)}
-            >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </Button>
-          ))}
+        <p className={styles.sectionTitle}>Appearance</p>
+
+        <div className={styles.optionRow}>
+          <div className={styles.optionLabel}>
+            <span className={styles.optionTitle}>Theme</span>
+            <span className={styles.optionHint}>Choose how Tempo looks on your device.</span>
+          </div>
+          <div className={styles.optionControl}>
+            <div className={styles.themeRow}>
+              {(['light', 'dark', 'system'] as const).map((t) => (
+                <button
+                  key={t}
+                  className={`${styles.themeOption} ${theme === t ? styles.themeOptionActive : ''}`}
+                  onClick={() => void setTheme(t)}
+                >
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* ── Schedule ── */}
       <section className={styles.section}>
-        <h3>Working Days</h3>
-        <FormField label="Weekend days (non-working)">
-          <div className={styles.dayRow}>
-            {DAY_LABELS.map((label, i) => (
-              <button
-                key={i}
-                className={`${styles.dayBtn} ${workingDays.weekends.includes(i) ? styles.weekend : ''}`}
-                onClick={() => toggleWeekend(i)}
-              >
-                {label}
-              </button>
-            ))}
+        <p className={styles.sectionTitle}>Schedule</p>
+
+        <div className={styles.optionRow}>
+          <div className={styles.optionLabel}>
+            <span className={styles.optionTitle}>Non-working days</span>
+            <span className={styles.optionHint}>
+              Days excluded from effort calculations and the burnout chart.
+            </span>
           </div>
-        </FormField>
+          <div className={styles.optionControl}>
+            <div className={styles.dayRow}>
+              {DAY_LABELS.map((label, i) => (
+                <button
+                  key={i}
+                  className={`${styles.dayBtn} ${workingDays.weekends.includes(i) ? styles.weekend : ''}`}
+                  onClick={() => toggleWeekend(i)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
+      {/* ── Burnout Chart ── */}
       <section className={styles.section}>
-        <h3>Burnout Chart</h3>
-        <FormField
-          label="Daily capacity (pts)"
-          hint="Max effort points per person per day — sets 100% on the burnout chart."
-        >
-          <input
-            type="number"
-            className="input"
-            min={0.5}
-            step={0.5}
-            value={settings.dailyCapacity}
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              if (val > 0) void saveData({ settings: { ...settings, dailyCapacity: val } });
-            }}
-            style={{ width: 100 }}
-          />
-        </FormField>
+        <p className={styles.sectionTitle}>Burnout Chart</p>
+
+        <div className={styles.optionRow}>
+          <div className={styles.optionLabel}>
+            <span className={styles.optionTitle}>Daily capacity</span>
+            <span className={styles.optionHint}>
+              Maximum effort points per person per day — this sets the 100% mark on the burnout
+              chart.
+            </span>
+          </div>
+          <div className={styles.optionControl}>
+            <input
+              type="number"
+              className="input"
+              min={0.5}
+              step={0.5}
+              value={settings.dailyCapacity}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (val > 0) void saveData({ settings: { ...settings, dailyCapacity: val } });
+              }}
+              style={{ width: 88 }}
+            />
+          </div>
+        </div>
+
+        <div className={styles.optionRow}>
+          <div className={styles.optionLabel}>
+            <span className={styles.optionTitle}>Effort distribution</span>
+            <span className={styles.optionHint}>
+              Controls how effort points are spread across a task's active days.
+            </span>
+          </div>
+          <div className={styles.optionControl}>
+            <div className={styles.toggleRow}>
+              <label className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={settings.prorateEffort}
+                  onChange={(e) =>
+                    void saveData({ settings: { ...settings, prorateEffort: e.target.checked } })
+                  }
+                />
+                <span className={styles.toggleTrack} />
+              </label>
+              <span className={styles.toggleLabel}>
+                {settings.prorateEffort ? 'Spread across duration' : 'Full weight per day'}
+              </span>
+              <span className={styles.tooltipWrap}>
+                <span className={styles.tooltipIcon}>i</span>
+                <span className={styles.tooltipBubble}>
+                  <strong>OFF — Full weight per day</strong>
+                  <br />
+                  Each day a task is active contributes its full effort points. A 2-pt task active
+                  on 3 days adds 2 pts of load every day (6 pts toward the weekly total).
+                  <br />
+                  <br />
+                  <strong>ON — Spread across duration</strong>
+                  <br />
+                  Effort is divided evenly across all working days of the task. That same 2-pt task
+                  over 3 days adds 0.67 pts per day (2 pts total for the week).
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
       </section>
 
+      {/* ── Data ── */}
       <section className={styles.section}>
-        <h3>Data File</h3>
-        <p className={styles.dataPath}>
-          Stored in your OS data directory under <code>tempo/data.json</code>. Backups are kept as{' '}
-          <code>data.json.bak.*</code> (last 5).
-        </p>
-        <Button variant="secondary" onClick={handleDownload} style={{ marginTop: 12 }}>
-          Download snapshot
-        </Button>
+        <p className={styles.sectionTitle}>Data</p>
+
+        <div className={styles.optionRow}>
+          <div className={styles.optionLabel}>
+            <span className={styles.optionTitle}>Data file</span>
+            <span className={styles.optionHint}>
+              Stored in your OS data directory under <code>tempo/data.json</code>. Backups are kept
+              as <code>data.json.bak.*</code> (last 5 snapshots).
+            </span>
+          </div>
+          <div className={styles.optionControl}>
+            <button className={styles.themeOption} onClick={handleDownload}>
+              Download snapshot
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.optionRow}>
+          <div className={styles.optionLabel}>
+            <span className={styles.optionTitle}>Import snapshot</span>
+            <span className={styles.optionHint}>
+              Restore data from a previously downloaded backup. This overwrites all current data.
+            </span>
+          </div>
+          <div className={styles.optionControl}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              style={{ display: 'none' }}
+              onChange={handleImport}
+            />
+            <button
+              className={`${styles.themeOption} ${importState === 'ok' ? styles.importOk : importState === 'error' ? styles.importError : ''}`}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {importState === 'ok'
+                ? 'Imported ✓'
+                : importState === 'error'
+                  ? 'Invalid file'
+                  : 'Import snapshot'}
+            </button>
+          </div>
+        </div>
       </section>
     </div>
   );
