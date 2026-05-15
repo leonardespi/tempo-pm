@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/store';
 import { Button } from '@/components/ui/Button';
@@ -7,7 +7,7 @@ import { FormField } from '@/components/ui/FormField';
 import { ExportAllButton } from '@/components/ExportAllButton';
 import { formatDate, workingDaysRemaining } from '@/utils/workingDays';
 import { v4 as uuidv4 } from 'uuid';
-import type { Project } from '@/types';
+import type { Project, AppData } from '@/types';
 import styles from './Dashboard.module.css';
 
 type CreateForm = {
@@ -35,8 +35,12 @@ export default function Dashboard() {
   const workingDays = useStore((s) => s.workingDays);
   const addProject = useStore((s) => s.addProject);
   const deleteProject = useStore((s) => s.deleteProject);
+  const saveData = useStore((s) => s.saveData);
+  const settings = useStore((s) => s.settings);
 
   const [showCreate, setShowCreate] = useState(false);
+  const [importState, setImportState] = useState<'idle' | 'ok' | 'error'>('idle');
+  const importRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<CreateForm>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<CreateForm>>({});
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -89,6 +93,32 @@ export default function Dashboard() {
     setErrors({});
   };
 
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const raw = JSON.parse(ev.target?.result as string) as Partial<AppData>;
+        if (!Array.isArray(raw.projects) || !Array.isArray(raw.tasks)) throw new Error('invalid');
+        await saveData({
+          projects: raw.projects,
+          tasks: raw.tasks,
+          subtasks: raw.subtasks ?? [],
+          users: raw.users ?? [],
+          ...(raw.workingDays ? { workingDays: raw.workingDays } : {}),
+          ...(raw.settings ? { settings: { ...settings, ...raw.settings } } : {}),
+        });
+        setImportState('ok');
+      } catch {
+        setImportState('error');
+      }
+      e.target.value = '';
+      setTimeout(() => setImportState('idle'), 3000);
+    };
+    reader.readAsText(file);
+  };
+
   const projectStats = (p: Project) => {
     const projectTasks = tasks.filter((t) => t.projectId === p.id);
     const taskIds = new Set(projectTasks.map((t) => t.id));
@@ -104,9 +134,25 @@ export default function Dashboard() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1>Projects</h1>
-        <Button variant="primary" onClick={() => setShowCreate(true)}>
-          + New project <kbd className={styles.kbd}>N</kbd>
-        </Button>
+        <div className={styles.headerActions}>
+          <input
+            ref={importRef}
+            type="file"
+            accept=".json,application/json"
+            style={{ display: 'none' }}
+            onChange={handleImport}
+          />
+          <Button variant="secondary" onClick={() => importRef.current?.click()}>
+            {importState === 'ok'
+              ? 'Imported ✓'
+              : importState === 'error'
+                ? 'Invalid file'
+                : 'Import projects'}
+          </Button>
+          <Button variant="primary" onClick={() => setShowCreate(true)}>
+            + New project <kbd className={styles.kbd}>N</kbd>
+          </Button>
+        </div>
       </div>
 
       {!hasLoaded ? (
