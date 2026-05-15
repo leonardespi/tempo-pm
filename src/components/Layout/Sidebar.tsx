@@ -13,12 +13,15 @@ const NAV_ITEMS = [
   { to: '/workload', label: 'Workload', icon: '▦' },
   { to: '/burnout', label: 'Burnout Risk', icon: '◉' },
   { to: '/users', label: 'Team', icon: '◎' },
-  { to: '/settings', label: 'Settings', icon: '⚙' },
 ];
 
-type Props = { onOpenSearch: () => void };
+type Props = {
+  isOpen: boolean;
+  onToggle: () => void;
+  onOpenSearch: () => void;
+};
 
-export function Sidebar({ onOpenSearch }: Props) {
+export function Sidebar({ isOpen, onToggle, onOpenSearch }: Props) {
   const projects = useStore((s) => s.projects);
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -32,15 +35,24 @@ export function Sidebar({ onOpenSearch }: Props) {
   const themeLabel = `Theme: ${theme}`;
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isOpen ? '' : styles.collapsed}`} aria-hidden={!isOpen}>
       <div className={styles.brand}>
         <h2>Tempo</h2>
+        <button
+          className={styles.collapseBtn}
+          onClick={onToggle}
+          aria-label="Collapse sidebar"
+          title="Collapse sidebar"
+        >
+          ‹
+        </button>
       </div>
 
       <button
         className={styles.searchBtn}
         onClick={onOpenSearch}
         aria-label={`Open command palette (${SHORTCUT})`}
+        tabIndex={isOpen ? undefined : -1}
       >
         <span className={styles.searchIcon} aria-hidden="true">
           ⌕
@@ -55,6 +67,7 @@ export function Sidebar({ onOpenSearch }: Props) {
             key={to}
             to={to}
             end={to === '/'}
+            tabIndex={isOpen ? undefined : -1}
             className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
           >
             <span className={styles.icon} aria-hidden="true">
@@ -72,6 +85,7 @@ export function Sidebar({ onOpenSearch }: Props) {
             <button
               key={p.id}
               className={styles.projectItem}
+              tabIndex={isOpen ? undefined : -1}
               onClick={() => navigate(`/projects/${p.id}`)}
             >
               <span className={styles.projectDot} />
@@ -85,12 +99,20 @@ export function Sidebar({ onOpenSearch }: Props) {
         <button
           className={styles.themeBtn}
           onClick={cycleTheme}
+          tabIndex={isOpen ? undefined : -1}
           aria-label={themeLabel}
           title={themeLabel}
         >
           <span>{themeIcon}</span>
           <span>{theme.charAt(0).toUpperCase() + theme.slice(1)}</span>
         </button>
+        <NavLink
+          to="/settings"
+          tabIndex={isOpen ? undefined : -1}
+          className={({ isActive }) => `${styles.settingsBtn} ${isActive ? styles.active : ''}`}
+        >
+          Settings
+        </NavLink>
       </div>
     </aside>
   );

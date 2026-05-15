@@ -4,8 +4,10 @@
   --color-bg: #f5f0ea;
   --color-bg-card: #ede8e0;
   --color-bg-muted: #ede8e0;
+  --color-bg-subtle: #e6e0d5;
   --color-text: #1c1a17;
   --color-text-muted: #6b6460;
+  --color-text-faint: #9b938f;
   --color-border: #d5cfc6;
   --color-accent: #c17d52;
   --color-accent-hover: #8a5e3a;
@@ -23,8 +25,10 @@
   --color-bg: #2a2724;
   --color-bg-card: #333028;
   --color-bg-muted: #3a362d;
+  --color-bg-subtle: #423d33;
   --color-text: #f0ebe3;
   --color-text-muted: #9a918a;
+  --color-text-faint: #6e6862;
   --color-border: #2e2a25;
   --color-accent: #d4926a;
   --color-accent-hover: #c17d52;

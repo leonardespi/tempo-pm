@@ -7,17 +7,50 @@
   background: var(--color-bg-card);
   border-right: 1px solid var(--color-border);
   overflow: hidden;
+  transition:
+    width 0.22s ease,
+    min-width 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.collapsed {
+  width: 0;
+  min-width: 0;
+  border-right-color: transparent;
 }
 
 .brand {
   padding: 20px 16px 12px;
   border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .brand h2 {
   font-size: 1rem;
   font-family: var(--font-display);
   color: var(--color-accent);
+}
+
+.collapseBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color-text-muted);
+  padding: 2px 6px;
+  border-radius: 5px;
+  transition:
+    background 0.12s,
+    color 0.12s;
+  flex-shrink: 0;
+}
+
+.collapseBtn:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
 }
 
 .searchBtn {
@@ -163,13 +196,16 @@
   margin-top: auto;
   padding: 12px 8px;
   border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .themeBtn {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
   padding: 7px 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -186,4 +222,29 @@
 .themeBtn:hover {
   background: var(--color-bg-muted);
   color: var(--color-text);
+}
+
+.settingsBtn {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.settingsBtn:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+
+.settingsBtn.active {
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
 }
