@@ -57,6 +57,12 @@
     "vite": "^6.0.7",
     "vitest": "^3.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "core-js",
+      "esbuild"
+    ]
+  },
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint --fix --max-warnings 0",
