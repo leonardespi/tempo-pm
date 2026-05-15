@@ -15,15 +15,23 @@ type CreateForm = {
   description: string;
   startDate: string;
   endDate: string;
+  assigneeId: string;
 };
 
-const EMPTY_FORM: CreateForm = { name: '', description: '', startDate: '', endDate: '' };
+const EMPTY_FORM: CreateForm = {
+  name: '',
+  description: '',
+  startDate: '',
+  endDate: '',
+  assigneeId: '',
+};
 
 export default function Dashboard() {
   const projects = useStore((s) => s.projects);
   const hasLoaded = useStore((s) => s.hasLoaded);
   const tasks = useStore((s) => s.tasks);
   const subtasks = useStore((s) => s.subtasks);
+  const users = useStore((s) => s.users);
   const workingDays = useStore((s) => s.workingDays);
   const addProject = useStore((s) => s.addProject);
   const deleteProject = useStore((s) => s.deleteProject);
@@ -73,6 +81,7 @@ export default function Dashboard() {
       createdAt: new Date().toISOString(),
       startDate: form.startDate,
       endDate: form.endDate,
+      assigneeId: form.assigneeId || undefined,
     };
     void addProject(project);
     setShowCreate(false);
@@ -119,6 +128,8 @@ export default function Dashboard() {
           {projects.map((p) => {
             const { total, done, effort, remaining } = projectStats(p);
             const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+            const assignee = users.find((u) => u.id === p.assigneeId);
+            const accent = assignee?.color ?? 'var(--color-accent)';
             return (
               <div
                 key={p.id}
@@ -127,6 +138,7 @@ export default function Dashboard() {
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Enter' && navigate(`/projects/${p.id}`)}
+                style={{ borderLeft: `3px solid ${accent}` }}
               >
                 <div className={styles.cardHeader}>
                   <h3 className={styles.cardTitle}>{p.name}</h3>
@@ -141,6 +153,19 @@ export default function Dashboard() {
                     ✕
                   </button>
                 </div>
+                {assignee ? (
+                  <div className={styles.assigneeRow} title={assignee.name}>
+                    <span className={styles.assigneeAvatar} style={{ background: assignee.color }}>
+                      {assignee.name.trim().charAt(0).toUpperCase()}
+                    </span>
+                    <span className={styles.assigneeName}>{assignee.name}</span>
+                  </div>
+                ) : (
+                  <div className={styles.assigneeRow}>
+                    <span className={styles.assigneeAvatarEmpty} />
+                    <span className={styles.assigneeUnassigned}>Unassigned</span>
+                  </div>
+                )}
                 {p.description && <p className={styles.desc}>{p.description}</p>}
 
                 <div className={styles.progressBar}>
@@ -223,6 +248,21 @@ export default function Dashboard() {
                 placeholder="Optional"
                 rows={2}
               />
+            </FormField>
+            <FormField label="Assignee" htmlFor="proj-assign">
+              <select
+                id="proj-assign"
+                className="input"
+                value={form.assigneeId}
+                onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
+              >
+                <option value="">Unassigned</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
             </FormField>
             <div className={styles.row}>
               <FormField label="Start date" htmlFor="proj-start" error={errors.startDate} required>
