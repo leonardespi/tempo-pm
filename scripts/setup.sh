@@ -54,8 +54,16 @@ ok "Node.js $(node --version)"
 step "Checking pnpm"
 
 if ! command -v pnpm &>/dev/null; then
-  warn "pnpm not found — installing via npm…"
-  npm install -g pnpm || fail "npm install -g pnpm failed."
+  warn "pnpm not found — installing via official installer…"
+  if curl -fsSL https://get.pnpm.io/install.sh | env PNPM_HOME="$HOME/.local/share/pnpm" sh -; then
+    export PNPM_HOME="$HOME/.local/share/pnpm"
+    export PATH="$PNPM_HOME:$PATH"
+  elif command -v corepack &>/dev/null; then
+    warn "Falling back to corepack…"
+    corepack enable && corepack prepare pnpm@latest --activate
+  else
+    fail "Could not install pnpm. Install it manually: https://pnpm.io/installation"
+  fi
 fi
 ok "pnpm $(pnpm --version)"
 
@@ -113,6 +121,21 @@ set -euo pipefail
 APP_DIR="__APP_DIR__"
 API_PORT=__API_PORT__
 UI_PORT=__UI_PORT__
+
+# ── Ensure pnpm is on PATH ────────────────────────────────────────────────────
+for _pnpm_candidate in \
+    "$HOME/.local/share/pnpm" \
+    "$HOME/Library/pnpm" \
+    "$HOME/.pnpm/bin"; do
+  if [[ -x "$_pnpm_candidate/pnpm" ]]; then
+    export PATH="$_pnpm_candidate:$PATH"
+    break
+  fi
+done
+if ! command -v pnpm &>/dev/null; then
+  echo "✗ pnpm not found. Re-run: bash scripts/setup.sh" >&2
+  exit 1
+fi
 
 # ── Argument parsing ─────────────────────────────────────────────────────────
 BUILD=false
@@ -195,7 +218,22 @@ done
 echo "→ Starting UI preview on http://localhost:$UI_PORT..."
 pnpm exec vite preview --port "$UI_PORT" --host 127.0.0.1 >/dev/null 2>&1 &
 UI_PID=$!
-sleep 1
+
+# Wait up to 10 s for UI to become ready
+echo -n "  Waiting"
+for i in $(seq 1 50); do
+  if curl -sf "http://127.0.0.1:$UI_PORT" >/dev/null 2>&1; then
+    echo "  ✓"
+    break
+  fi
+  printf '.'
+  sleep 0.2
+  if [[ "$i" -eq 50 ]]; then
+    echo ""
+    echo "✗ UI did not respond after 10 s. Check for port conflicts on $UI_PORT." >&2
+    cleanup
+  fi
+done
 
 # ── Open browser ─────────────────────────────────────────────────────────────
 URL="http://localhost:$UI_PORT"
