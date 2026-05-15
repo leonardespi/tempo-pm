@@ -32,7 +32,7 @@
 /* ── Option rows ── */
 .optionRow {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
 }
 
@@ -73,7 +73,7 @@
   flex: 1;
   display: flex;
   justify-content: flex-end;
-  align-items: flex-start;
+  align-items: center;
 }
 
 /* ── Theme selector ── */
@@ -107,6 +107,12 @@
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   border-color: var(--color-accent);
   color: var(--color-text);
+}
+
+/* fixed-width data action buttons (Download / Import) */
+.dataBtn {
+  min-width: 160px;
+  text-align: center;
 }
 
 /* import feedback */

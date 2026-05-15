@@ -203,7 +203,7 @@ export default function SettingsPage() {
             </span>
           </div>
           <div className={styles.optionControl}>
-            <button className={styles.themeOption} onClick={handleDownload}>
+            <button className={`${styles.themeOption} ${styles.dataBtn}`} onClick={handleDownload}>
               Download snapshot
             </button>
           </div>
@@ -225,7 +225,7 @@ export default function SettingsPage() {
               onChange={handleImport}
             />
             <button
-              className={`${styles.themeOption} ${importState === 'ok' ? styles.importOk : importState === 'error' ? styles.importError : ''}`}
+              className={`${styles.themeOption} ${styles.dataBtn} ${importState === 'ok' ? styles.importOk : importState === 'error' ? styles.importError : ''}`}
               onClick={() => fileInputRef.current?.click()}
             >
               {importState === 'ok'
