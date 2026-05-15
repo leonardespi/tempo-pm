@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BurnoutChart } from './BurnoutChart';
+import { useStore } from '@/store';
 import type { Project, Task, Subtask, User, WorkingDaysConfig } from '@/types';
 
 const workingDays: WorkingDaysConfig = { weekends: [0, 6], holidays: [] };
@@ -51,9 +52,21 @@ const base = {
   filterProjectId: '',
   filterUserId: '',
   dailyCapacity: 5,
+  prorateEffort: false,
 };
 
 describe('BurnoutChart', () => {
+  beforeEach(() => {
+    // Reset persisted view state so tests don't leak drill-down/filter state into each other.
+    useStore.getState().setBurnoutView({
+      filterProjectId: '',
+      filterUserId: '',
+      drilldown: null,
+      selectedDay: null,
+      sheetHeight: null,
+    });
+  });
+
   it('shows empty state when there are no users', () => {
     render(<BurnoutChart {...base} users={[]} />);
     expect(screen.getByTestId('burnout-empty')).toBeTruthy();
