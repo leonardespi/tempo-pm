@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { AppData, Project, Task, Subtask, User, Theme } from '@/types';
 
+const STORAGE_KEY = 'tempo-pm-data';
+
 const DEFAULT_DATA: AppData = {
   projects: [],
   tasks: [],
@@ -48,34 +50,26 @@ export const useStore = create<AppStore>((set, get) => ({
   error: null,
   toast: null,
 
-  loadData: async () => {
-    // Prevent double-loading (StrictMode, HMR, or accidental re-calls)
-    if (get().hasLoaded || get().isLoading) return;
+  loadData: (): Promise<void> => {
+    if (get().hasLoaded || get().isLoading) return Promise.resolve();
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch('/api/data');
-      if (!res.ok) throw new Error(`Server error ${res.status}`);
-      const raw = (await res.json()) as AppData & { _restoredFromBackup?: number | null };
-      const { _restoredFromBackup, ...data } = raw;
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const data = raw ? (JSON.parse(raw) as AppData) : { ...DEFAULT_DATA };
       set({
         ...data,
         settings: { ...DEFAULT_DATA.settings, ...data.settings },
         isLoading: false,
         hasLoaded: true,
       });
-      if (_restoredFromBackup !== null && _restoredFromBackup !== undefined) {
-        get().showToast(
-          `Data restored from backup ${_restoredFromBackup} (main file was corrupt).`,
-          'error',
-        );
-      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load data';
       set({ isLoading: false, error: message });
     }
+    return Promise.resolve();
   },
 
-  saveData: async (updates) => {
+  saveData: (updates): Promise<void> => {
     const current = get();
     const next: AppData = {
       projects: current.projects,
@@ -88,17 +82,13 @@ export const useStore = create<AppStore>((set, get) => ({
     };
     set(next);
     try {
-      const res = await fetch('/api/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(next),
-      });
-      if (!res.ok) throw new Error(`Save failed ${res.status}`);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save data';
       set({ error: message });
       get().showToast(message, 'error');
     }
+    return Promise.resolve();
   },
 
   addProject: async (project) => {
