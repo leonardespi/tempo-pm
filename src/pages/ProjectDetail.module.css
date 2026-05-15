@@ -1,6 +1,8 @@
+/* ─── Page shell ──────────────────────────────────────────────────────────── */
+
 .page {
   padding: 32px;
-  max-width: 960px;
+  max-width: 1100px;
 }
 
 .topBar {
@@ -13,19 +15,16 @@
   cursor: pointer;
   font-size: 13px;
   font-family: var(--font-body);
+  transition: color 0.12s;
 }
 .back:hover {
   color: var(--color-accent-hover);
 }
 
+/* ─── Project header ──────────────────────────────────────────────────────── */
+
 .projectHeader {
-  margin-bottom: 24px;
-}
-.projectTitleRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 6px;
+  margin-bottom: 28px;
 }
 .projectEditRow {
   display: flex;
@@ -34,40 +33,159 @@
   max-width: 540px;
   margin-bottom: 12px;
 }
+
+.projectHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.projectHeaderLeft {
+  flex: 1;
+  min-width: 0;
+}
+.projectTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.editLink {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  opacity: 0.65;
+  transition:
+    opacity 0.12s,
+    color 0.12s;
+  padding: 0;
+}
+.editLink:hover {
+  opacity: 1;
+  color: var(--color-accent-hover);
+}
+
 .desc {
   font-size: 13px;
   color: var(--color-text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   line-height: 1.5;
 }
+
 .projectMeta {
   display: flex;
   gap: 8px;
   align-items: center;
   font-size: 12px;
   color: var(--color-text-muted);
-  margin-bottom: 8px;
   flex-wrap: wrap;
+  font-variant-numeric: tabular-nums;
 }
-.dot {
+.metaDot {
   color: var(--color-border);
+}
+
+.projectAssigneeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+.projectAssigneeAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+}
+.projectAssigneeUnassigned {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.projectAssigneeDot {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px dashed var(--color-border);
 }
 .mono {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
-.progressBar {
+/* Stats panel */
+.statsPanel {
+  display: flex;
+  align-items: stretch;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-card);
+  flex-shrink: 0;
+}
+.statCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 24px;
+  gap: 2px;
+}
+.statNum {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.statNumMuted {
+  opacity: 0.35;
+  font-size: 1.1rem;
+}
+.statLabel {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+.statSep {
+  width: 1px;
+  background: var(--color-border);
+  margin: 12px 0;
+  flex-shrink: 0;
+}
+.statMiniBar {
+  width: 48px;
   height: 3px;
   background: var(--color-border);
   border-radius: 2px;
   overflow: hidden;
+  margin-top: 5px;
 }
-.progressFill {
+.statMiniFill {
   height: 100%;
   background: var(--color-accent);
   border-radius: 2px;
   transition: width 0.3s;
 }
+
+/* ─── Conflict panel ──────────────────────────────────────────────────────── */
 
 .conflictPanel {
   background: rgba(192, 57, 43, 0.08);
@@ -86,12 +204,284 @@
   gap: 4px;
 }
 
+/* ─── Task list controls ──────────────────────────────────────────────────── */
+
 .taskListHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
 }
+.taskListControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popoverAnchor {
+  position: relative;
+}
+
+.controlBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+  position: relative;
+}
+.controlBtn:hover {
+  background: var(--color-bg-muted);
+}
+.controlBtnActive {
+  background: var(--color-bg-muted);
+  border-color: var(--color-text-muted);
+}
+.filterIcon,
+.groupIcon {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1;
+}
+.filterBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--color-accent);
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-bg);
+  line-height: 1;
+}
+
+.addTaskWrap button {
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.addTaskWrap button:hover {
+  transform: translateY(-1px);
+}
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+/* ─── Filter popover ──────────────────────────────────────────────────────── */
+
+.filterPopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 320px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+  padding: 4px 0 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+}
+
+.filterSection {
+  border-bottom: 1px solid var(--color-border);
+}
+.filterSection:last-of-type {
+  border-bottom: none;
+}
+.filterSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+}
+.filterSectionHeader:hover {
+  background: var(--color-bg-muted);
+}
+.filterSectionChevron {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  transform: rotate(0deg);
+  transition: transform 0.15s ease;
+}
+.filterSectionChevron.chevronOpen {
+  transform: rotate(90deg);
+}
+.filterSectionBody {
+  padding: 4px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filterCheckRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  cursor: pointer;
+  padding: 3px 0;
+}
+.filterCheckRow input[type='checkbox'] {
+  cursor: pointer;
+}
+.filterStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.filterAvatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.filterAvatarEmpty {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--color-text-faint);
+  flex-shrink: 0;
+}
+
+.filterDateRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.filterDateLabel {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  min-width: 86px;
+}
+.filterDateInput {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.filterPointsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filterPointsInput {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+}
+.filterPointsSep {
+  color: var(--color-text-muted);
+}
+
+.filterFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  border-radius: 0 0 8px 8px;
+}
+.filterResetLink {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-family: var(--font-body);
+  padding: 0;
+}
+.filterResetLink:hover {
+  color: var(--color-accent-hover);
+}
+
+/* ─── Group-by dropdown ───────────────────────────────────────────────────── */
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 156px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px;
+  z-index: 200;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.1s;
+}
+.dropdownItem:hover {
+  background: var(--color-bg-muted);
+}
+.dropdownItemActive {
+  font-weight: 600;
+}
+.checkMark {
+  color: var(--color-accent);
+  font-size: 13px;
+}
+
+/* ─── Empty state ─────────────────────────────────────────────────────────── */
 
 .empty {
   display: flex;
@@ -102,108 +492,298 @@
   color: var(--color-text-muted);
   text-align: center;
 }
-
-.kbd {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 3px;
-  padding: 1px 4px;
+.emptyMatches {
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
 }
 
-.taskList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+/* ─── Unified task table ──────────────────────────────────────────────────── */
 
-.taskRow {
+.taskTable {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  overflow: hidden;
+  border-radius: 10px;
   box-shadow: var(--shadow-card);
-}
-.taskRow.conflict {
-  border-color: rgba(192, 57, 43, 0.4);
+  overflow: visible;
 }
 
-.taskHeader {
+/* The grid every row shares */
+.row {
+  display: grid;
+  grid-template-columns: 28px 120px minmax(0, 1fr) 130px 150px 72px 32px;
+  gap: 16px;
+  align-items: center;
+  padding: 8px 14px;
+  position: relative;
+  font-variant-numeric: tabular-nums;
+  border-top: 1px solid var(--color-border);
+}
+.row:first-child {
+  border-top: none;
+}
+/* Lift the row when its action menu is open so the dropdown paints above
+   subsequent rows regardless of their stacking-context quirks. */
+.rowMenuOpen {
+  z-index: 50;
+}
+
+/* Cell column-positioning (lets group header span 2 cols cleanly) */
+.cellLeader {
+  grid-column: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  min-height: 48px;
+  justify-content: center;
+}
+.cellStatus {
+  grid-column: 2;
+  min-width: 0;
+}
+.cellName {
+  grid-column: 3;
+  min-width: 0;
+}
+.cellAssignee {
+  grid-column: 4;
+  min-width: 0;
+}
+.cellDates {
+  grid-column: 5;
+  text-align: right;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.cellPoints {
+  grid-column: 6;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.cellActions {
+  grid-column: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.zeroPts {
+  color: var(--color-text-faint);
+}
+.dateArrow {
+  color: var(--color-text-faint);
+  margin: 0 2px;
 }
 
-.collapseBtn {
+/* ─── Column ribbon (table head) ──────────────────────────────────────────── */
+
+.columnRibbon {
+  background: var(--color-bg-subtle);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 10px 10px 0 0;
+}
+.columnRibbon .cellDates,
+.columnRibbon .cellPoints {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+/* ─── Group header ────────────────────────────────────────────────────────── */
+
+/* Opacity-only fade — using `transform` here would persist past the
+   animation (fill-mode: both) and create a stacking context that traps
+   the action-menu's z-index inside the row. */
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.groupHeader {
+  background: var(--color-bg-card);
+  min-height: 50px;
+  transition: background 0.12s ease;
+  animation: fadeSlide 0.2s ease both;
+}
+.groupHeaderExpanded {
+  background: var(--color-bg-muted);
+}
+.groupHeader:hover {
+  background: var(--color-bg-muted);
+}
+.groupHeaderConflict {
+  box-shadow: inset 3px 0 0 rgba(192, 57, 43, 0.5);
+}
+
+.groupHeader .cellGroupTitle {
+  grid-column: 2 / span 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.groupTitle {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+/* Dependency icon with hover tooltip */
+.depIcon {
+  position: relative;
+  font-size: 11px;
+  color: var(--color-accent);
+  cursor: help;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: rgba(193, 125, 82, 0.12);
+}
+.depIcon::after {
+  content: attr(data-dep);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.15s,
+    visibility 0.15s;
+  pointer-events: none;
+  z-index: 100;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.depIcon:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mini progress bar (in group header's assignee column) */
+.miniProgress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.miniProgressCount {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: right;
+}
+.miniBar {
+  flex: 1;
+  max-width: 70px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.miniBarFill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* Collapse chevron */
+.collapseChevron {
   background: none;
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  font-size: 10px;
-  padding: 2px;
+  font-size: 16px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  transition:
+    transform 0.15s ease,
+    color 0.12s;
   line-height: 1;
+  padding: 0;
 }
-.collapseBtn:hover {
+.collapseChevron:hover {
+  color: var(--color-text);
+}
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+/* ─── Subtask row ─────────────────────────────────────────────────────────── */
+
+.subRow {
+  background: var(--color-bg);
+  font-size: 13px;
+  min-height: 42px;
+  transition: background 0.12s ease;
+}
+.subRow:hover {
+  background: var(--color-bg-muted);
+}
+.status_done .subName {
+  opacity: 0.45;
+  text-decoration: line-through;
+  text-decoration-color: var(--color-text-muted);
+}
+.status_blocked {
+  background: rgba(192, 57, 43, 0.04);
+}
+.status_blocked:hover {
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.subName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
   color: var(--color-text);
 }
 
-.taskName {
-  font-weight: 600;
-  font-size: 13px;
-  flex: 1;
-}
-.taskDate {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.assigneeDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.conflictBadge {
-  font-size: 11px;
-  color: #c0392b;
-  background: rgba(192, 57, 43, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.depBadge {
-  font-size: 11px;
-  color: var(--color-accent);
-  background: rgba(193, 125, 82, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.taskActions {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.subtaskList {
-  border-top: 1px solid var(--color-border);
+/* Empty subtasks placeholder row */
+.emptySubsRow {
   background: var(--color-bg);
-  padding: 4px 0;
+  min-height: 36px;
 }
-
-.noSubs {
-  padding: 8px 48px;
+.emptySubsRow .cellGroupTitle {
+  grid-column: 2 / span 5;
+}
+.emptyText {
   font-size: 12px;
   color: var(--color-text-muted);
+  font-style: italic;
 }
 .addLink {
   background: none;
@@ -212,67 +792,249 @@
   cursor: pointer;
   font-size: 12px;
   font-family: var(--font-body);
+  font-style: normal;
   padding: 0;
+  transition: color 0.12s;
 }
 .addLink:hover {
   color: var(--color-accent-hover);
 }
 
-.subtaskRow {
+/* ─── Checkbox ────────────────────────────────────────────────────────────── */
+
+.rowCheck {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 16px 8px 48px;
-  font-size: 13px;
-  border-bottom: 1px solid var(--color-border);
-  transition: background 0.1s;
-}
-.subtaskRow:last-child {
-  border-bottom: none;
-}
-.subtaskRow:hover {
-  background: var(--color-bg-card);
-}
-
-.subtaskName {
-  flex: 1;
-}
-.effortBadge {
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-.statusSelect {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-card);
-  color: var(--color-text);
+  justify-content: center;
   cursor: pointer;
+}
+.rowCheck input {
+  display: none;
+}
+.checkmark {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 3px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+  font-size: 9px;
+  color: transparent;
+  line-height: 1;
+}
+.rowCheck:hover .checkmark {
+  border-color: var(--color-accent);
+}
+.rowCheck input:checked + .checkmark {
+  background: #6b8c42;
+  border-color: #6b8c42;
+  color: white;
+}
+.rowCheck input:checked + .checkmark::after {
+  content: '✓';
+}
+
+/* ─── Status pill (fixed width) ───────────────────────────────────────────── */
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  width: 110px;
+  padding: 3px 8px 3px 7px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  transition: filter 0.1s;
+  font-variant-numeric: normal;
+}
+.statusPill:hover {
+  filter: brightness(0.94);
+}
+.pillLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+}
+.pillDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
+.pillLabel {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pillChevron {
+  font-size: 13px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.pillSelect {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  background: transparent;
+}
 
-/* Status tints */
-.status_done .subtaskName {
-  opacity: 0.5;
-  text-decoration: line-through;
+/* ─── Assignee chip (avatar + name) ───────────────────────────────────────── */
+
+.assigneeChip,
+.assigneeChipUnassigned {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
-.status_blocked {
-  background: rgba(192, 57, 43, 0.04);
+.avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
 }
+.avatarUnassigned {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--color-text-faint);
+  flex-shrink: 0;
+}
+.assigneeName {
+  font-size: 12.5px;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.assigneeNameUnassigned {
+  font-size: 12.5px;
+  color: var(--color-text-faint);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Badges in group header ──────────────────────────────────────────────── */
+
+.conflictBadge {
+  font-size: 10.5px;
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.burnoutWarnBadge {
+  font-size: 10.5px;
+  color: #b07d2a;
+  background: rgba(224, 152, 48, 0.13);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  cursor: default;
+  font-weight: 500;
+}
+
+/* ─── Row actions (⋮) ─────────────────────────────────────────────────────── */
+
+.menuBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 16px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition:
+    background 0.1s,
+    color 0.1s;
+  line-height: 1;
+}
+.menuBtn:hover {
+  background: var(--color-bg-card);
+  color: var(--color-text);
+}
+
+.actionMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 2px);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  padding: 4px;
+  z-index: 200;
+  min-width: 108px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.actionMenu button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  padding: 6px 10px;
+  border-radius: 4px;
+  width: 100%;
+  transition: background 0.1s;
+}
+.actionMenu button:hover {
+  background: var(--color-bg-muted);
+}
+.actionMenuDanger {
+  color: #c0392b !important;
+}
+
+/* ─── Modal form styles ───────────────────────────────────────────────────── */
 
 .form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-.row {
+.formRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
-
 .depList {
   display: flex;
   flex-direction: column;
