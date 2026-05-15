@@ -120,12 +120,24 @@ export const useStore = create<AppStore>((set, get) => ({
       chartViews: { ...s.chartViews, workload: { ...s.chartViews.workload, ...updates } },
     })),
 
-  loadData: (): Promise<void> => {
-    if (get().hasLoaded || get().isLoading) return Promise.resolve();
+  loadData: async (): Promise<void> => {
+    if (get().hasLoaded || get().isLoading) return;
     set({ isLoading: true, error: null });
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      const data = raw ? (JSON.parse(raw) as AppData) : { ...DEFAULT_DATA };
+      let data: AppData;
+      if (raw) {
+        data = JSON.parse(raw) as AppData;
+      } else {
+        // First visit — seed with mock data so the app isn't empty
+        try {
+          const res = await fetch(`${import.meta.env.BASE_URL}mock-data.json`);
+          data = res.ok ? ((await res.json()) as AppData) : { ...DEFAULT_DATA };
+        } catch {
+          data = { ...DEFAULT_DATA };
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
       set({
         ...data,
         settings: { ...DEFAULT_DATA.settings, ...data.settings },
@@ -136,7 +148,6 @@ export const useStore = create<AppStore>((set, get) => ({
       const message = err instanceof Error ? err.message : 'Failed to load data';
       set({ isLoading: false, error: message });
     }
-    return Promise.resolve();
   },
 
   saveData: (updates): Promise<void> => {
