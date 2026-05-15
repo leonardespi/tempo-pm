@@ -8,6 +8,7 @@ import {
   useImperativeHandle,
   type MouseEvent,
 } from 'react';
+import { useDragScroll } from '@/hooks/useDragScroll';
 import type { Project, Task, Subtask, User, WorkingDaysConfig } from '@/types';
 import {
   getISOWeekStart,
@@ -238,6 +239,8 @@ export const WorkloadChart = forwardRef<WorkloadChartHandle, Props>(function Wor
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+
+  useDragScroll(containerRef);
 
   useImperativeHandle(ref, () => ({
     getSVGElement: () => svgRef.current,

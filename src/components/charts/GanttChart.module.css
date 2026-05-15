@@ -168,6 +168,10 @@
   overflow: auto;
   position: relative;
   user-select: none;
+  cursor: grab;
+}
+.chartArea:active {
+  cursor: grabbing;
 }
 
 /* Time axis — sticky top inside chartArea */

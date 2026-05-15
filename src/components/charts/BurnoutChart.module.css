@@ -47,6 +47,10 @@
   overflow-y: auto;
   min-height: 0;
   padding-bottom: 50vh;
+  cursor: grab;
+}
+.chartScroll:active {
+  cursor: grabbing;
 }
 
 /* ── SVG text ── */

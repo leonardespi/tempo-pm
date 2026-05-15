@@ -3,6 +3,7 @@ import type { Project, Task, Subtask, User, WorkingDaysConfig } from '@/types';
 import { buildBurnoutData, type UserBurnoutRow, type WeekLoad } from '@/utils/burnout';
 import { workingDaysInWeek, workingDaysBetween, toISO } from '@/utils/workingDays';
 import { useStore } from '@/store';
+import { useDragScroll } from '@/hooks/useDragScroll';
 import styles from './BurnoutChart.module.css';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -132,6 +133,8 @@ export const BurnoutChart = forwardRef<BurnoutChartHandle, Props>(function Burno
   const scrollRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef<number | null>(null);
+
+  useDragScroll(scrollRef);
   const dragStartH = useRef<number>(0);
 
   const sheetHeight = sheetHeightPersist ?? 360;
