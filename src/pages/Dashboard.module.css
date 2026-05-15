@@ -1,6 +1,5 @@
 .page {
   padding: 32px;
-  max-width: 1100px;
 }
 
 .header {
@@ -8,6 +7,12 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 28px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .kbd {
