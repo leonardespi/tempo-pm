@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
+  "packageManager": "pnpm@10.18.3",
   "type": "module",
   "scripts": {
     "dev": "concurrently --kill-others \"pnpm run dev:server\" \"pnpm run dev:client\"",
