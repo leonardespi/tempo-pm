@@ -142,14 +142,22 @@ export default function Dashboard() {
             style={{ display: 'none' }}
             onChange={handleImport}
           />
-          <Button variant="secondary" onClick={() => importRef.current?.click()}>
+          <Button
+            variant="secondary"
+            onClick={() => importRef.current?.click()}
+            data-tour="import-projects-btn"
+          >
             {importState === 'ok'
               ? 'Imported ✓'
               : importState === 'error'
                 ? 'Invalid file'
                 : 'Import projects'}
           </Button>
-          <Button variant="primary" onClick={() => setShowCreate(true)}>
+          <Button
+            variant="primary"
+            onClick={() => setShowCreate(true)}
+            data-tour="create-project-btn"
+          >
             + New project <kbd className={styles.kbd}>N</kbd>
           </Button>
         </div>

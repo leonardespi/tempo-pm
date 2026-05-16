@@ -78,7 +78,7 @@ export default function SettingsPage() {
             <span className={styles.optionHint}>Choose how Tempo looks on your device.</span>
           </div>
           <div className={styles.optionControl}>
-            <div className={styles.themeRow}>
+            <div className={styles.themeRow} data-tour="theme-toggle">
               {(['light', 'dark', 'system'] as const).map((t) => (
                 <button
                   key={t}

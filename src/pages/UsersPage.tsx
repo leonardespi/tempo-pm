@@ -95,7 +95,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-tour="team-management-panel">
       <div className={styles.header}>
         <h1>Team</h1>
         <Button variant="primary" onClick={openCreate}>

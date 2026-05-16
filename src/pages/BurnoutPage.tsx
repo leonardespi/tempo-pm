@@ -53,7 +53,7 @@ export default function BurnoutPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-tour="burnout-risk-matrix">
       <div className={styles.header}>
         <h1>Burnout Risk</h1>
 

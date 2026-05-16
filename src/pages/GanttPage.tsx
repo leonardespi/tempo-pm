@@ -61,7 +61,7 @@ export default function GanttPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-tour="gantt-chart">
       <div className={styles.header}>
         <h1>Gantt</h1>
         {projects.length > 0 && (

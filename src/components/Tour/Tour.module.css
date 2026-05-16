@@ -1,0 +1,351 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* ── Backdrop rectangles ── */
+.backdropRect {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: all;
+}
+
+.backdropSolid {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  pointer-events: all;
+}
+
+/* ── Spotlight ring around target ── */
+.highlight {
+  position: fixed;
+  border: 2px solid var(--color-accent);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 3px rgba(193, 125, 82, 0.25),
+    0 0 16px rgba(193, 125, 82, 0.2);
+  pointer-events: none;
+  animation: pulseRing 2.4s ease-in-out infinite;
+}
+
+@keyframes pulseRing {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px rgba(193, 125, 82, 0.25),
+      0 0 16px rgba(193, 125, 82, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px rgba(193, 125, 82, 0.4),
+      0 0 24px rgba(193, 125, 82, 0.3);
+  }
+}
+
+/* ── Tour card ── */
+.card {
+  position: fixed;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.22),
+    0 3px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  pointer-events: all;
+  z-index: 1000;
+  animation: fadeSlideIn 0.22s ease-out;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Arrow: card is BELOW element, arrow points UP */
+.arrow_top::before {
+  top: -9px;
+  left: 24px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 9px solid var(--color-bg-card);
+}
+
+/* Arrow: card is BELOW element, arrow points UP — aligned to top-right */
+.arrow_top_right::before {
+  top: -9px;
+  right: 24px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 9px solid var(--color-bg-card);
+}
+
+/* Arrow: card is ABOVE element, arrow points DOWN */
+.arrow_bottom::before {
+  bottom: -9px;
+  left: 24px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 9px solid var(--color-bg-card);
+}
+
+/* Arrow: card is to the RIGHT, arrow points LEFT */
+.arrow_left::before {
+  left: -9px;
+  top: 24px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 9px solid var(--color-bg-card);
+}
+
+/* Arrow: card is to the LEFT, arrow points RIGHT */
+.arrow_right::before {
+  right: -9px;
+  top: 24px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 9px solid var(--color-bg-card);
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.stepBadge {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--color-text-faint);
+  letter-spacing: 0.04em;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-faint);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.closeBtn:hover {
+  color: var(--color-text);
+  background: var(--color-bg-muted);
+}
+
+.cardTitle {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--color-text);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.cardBody {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.cardBody li {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  padding-left: 14px;
+  position: relative;
+}
+
+.cardBody li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  justify-content: center;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition:
+    background 0.18s,
+    transform 0.18s;
+}
+
+.dotActive {
+  background: var(--color-accent);
+  transform: scale(1.3);
+}
+
+.navBtn {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-family: var(--font-body);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
+  white-space: nowrap;
+}
+
+.navBtn:hover:not(:disabled) {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+  border-color: var(--color-text-faint);
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.navBtnPrimary {
+  background: var(--color-accent);
+  border: 1px solid transparent;
+  color: #fff;
+  font-size: 12px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+
+.navBtnPrimary:hover {
+  background: var(--color-accent-hover);
+}
+
+/* ── Floating trigger button ── */
+.trigger {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 998;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 18px 10px 14px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow:
+    0 4px 16px rgba(193, 125, 82, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+  transition:
+    background 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
+  pointer-events: all;
+}
+
+.trigger:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(193, 125, 82, 0.5),
+    0 3px 8px rgba(0, 0, 0, 0.18);
+}
+
+.trigger:active {
+  transform: translateY(0);
+}
+
+.triggerIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Loading state card */
+.loadingCard {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 28px 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+  pointer-events: all;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.loadingSpinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.loadingText {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

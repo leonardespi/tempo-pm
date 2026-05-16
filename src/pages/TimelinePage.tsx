@@ -50,7 +50,7 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-tour="timeline-view">
       <div className={styles.header}>
         <h1>Timeline</h1>
 

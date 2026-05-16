@@ -53,7 +53,7 @@ export default function WorkloadPage() {
   }
 
   return (
-    <div className={styles.page}>
+    <div className={styles.page} data-tour="workload-chart">
       <div className={styles.header}>
         <h1>Workload</h1>
 

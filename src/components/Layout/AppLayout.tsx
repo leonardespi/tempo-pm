@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar';
 import { Toast } from '@/components/ui/Toast';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { CommandPalette } from '@/components/CommandPalette';
+import { TourProvider, TourOverlay, TourTrigger } from '@/components/Tour';
 import styles from './AppLayout.module.css';
 
 type Props = { children: ReactNode };
@@ -40,30 +41,34 @@ export function AppLayout({ children }: Props) {
   }, []);
 
   return (
-    <div className={styles.shell}>
-      <ScrollToTop />
-      <Sidebar
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        onOpenSearch={() => setPaletteOpen(true)}
-      />
-      <div className={styles.content}>
-        {!sidebarOpen && (
-          <div className={styles.topbar}>
-            <button
-              className={styles.topbarBurger}
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Open sidebar"
-            >
-              ☰
-            </button>
-            <span className={styles.topbarBrand}>Tempo</span>
-          </div>
-        )}
-        <main className={styles.main}>{children}</main>
+    <TourProvider>
+      <div className={styles.shell}>
+        <ScrollToTop />
+        <Sidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          onOpenSearch={() => setPaletteOpen(true)}
+        />
+        <div className={styles.content}>
+          {!sidebarOpen && (
+            <div className={styles.topbar}>
+              <button
+                className={styles.topbarBurger}
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open sidebar"
+              >
+                ☰
+              </button>
+              <span className={styles.topbarBrand}>Tempo</span>
+            </div>
+          )}
+          <main className={styles.main}>{children}</main>
+        </div>
+        <Toast />
+        {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
+        <TourOverlay />
+        <TourTrigger />
       </div>
-      <Toast />
-      {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
-    </div>
+    </TourProvider>
   );
 }

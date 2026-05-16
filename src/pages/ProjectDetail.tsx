@@ -785,7 +785,7 @@ export default function ProjectDetail() {
               </div>
             </div>
 
-            <div className={styles.statsPanel}>
+            <div className={styles.statsPanel} data-tour="project-stats">
               <div className={styles.statCell}>
                 <div className={styles.statNum}>
                   {doneSubs}
@@ -828,7 +828,7 @@ export default function ProjectDetail() {
       )}
 
       {/* ── Task list controls ── */}
-      <div className={styles.taskListHeader}>
+      <div className={styles.taskListHeader} data-tour="project-conflict-area">
         <h3>Tasks</h3>
         <div className={styles.taskListControls}>
           <div className={styles.popoverAnchor} ref={filterBtnRef}>
@@ -893,7 +893,7 @@ export default function ProjectDetail() {
           </div>
 
           <div className={styles.addTaskWrap}>
-            <Button variant="primary" size="sm" onClick={openCreateTask}>
+            <Button variant="primary" size="sm" onClick={openCreateTask} data-tour="add-task-btn">
               + Add task <kbd className={styles.kbd}>N</kbd>
             </Button>
           </div>
@@ -914,7 +914,7 @@ export default function ProjectDetail() {
           <div className={styles.emptyMatches}>No tasks match your filters in this grouping.</div>
         </div>
       ) : (
-        <div className={styles.taskTable}>
+        <div className={styles.taskTable} data-tour="task-table">
           <ColumnRibbon />
 
           {groups.map((group, groupIdx) => {
