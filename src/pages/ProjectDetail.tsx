@@ -811,91 +811,93 @@ export default function ProjectDetail() {
         )}
       </div>
 
-      {/* ── Schedule conflicts ── */}
-      {conflictIds.size > 0 && (
-        <div className={styles.conflictPanel}>
-          <strong>Schedule conflicts</strong>
-          <ul>
-            {tasks
-              .filter((t) => conflictIds.has(t.id))
-              .map((t) => (
-                <li key={t.id}>
-                  <strong>{t.name}</strong> starts before its dependencies end
-                </li>
-              ))}
-          </ul>
-        </div>
-      )}
-
-      {/* ── Task list controls ── */}
-      <div className={styles.taskListHeader} data-tour="project-conflict-area">
-        <h3>Tasks</h3>
-        <div className={styles.taskListControls}>
-          <div className={styles.popoverAnchor} ref={filterBtnRef}>
-            <button
-              className={`${styles.controlBtn} ${filterOpen ? styles.controlBtnActive : ''}`}
-              onClick={() => setFilterOpen((v) => !v)}
-              aria-haspopup="dialog"
-              aria-expanded={filterOpen}
-            >
-              <span className={styles.filterIcon} aria-hidden="true">
-                ⌗
-              </span>
-              Filter
-              {filterCount > 0 && <span className={styles.filterBadge}>{filterCount}</span>}
-            </button>
-            {filterOpen && (
-              <FilterPopover
-                filter={filter}
-                users={users}
-                onApply={(next) => {
-                  setFilter(next);
-                  setFilterOpen(false);
-                }}
-                onReset={() => setFilter(makeDefaultFilter(users))}
-              />
-            )}
-          </div>
-
-          <div className={styles.popoverAnchor} ref={groupByBtnRef}>
-            <button
-              className={`${styles.controlBtn} ${groupByOpen ? styles.controlBtnActive : ''}`}
-              onClick={() => setGroupByOpen((v) => !v)}
-              aria-haspopup="menu"
-              aria-expanded={groupByOpen}
-            >
-              <span className={styles.groupIcon} aria-hidden="true">
-                ☰
-              </span>
-              Group: {groupByLabel}
-            </button>
-            {groupByOpen && (
-              <div className={styles.dropdownMenu} role="menu">
-                {GROUP_BY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    className={`${styles.dropdownItem} ${
-                      groupBy === opt.value ? styles.dropdownItemActive : ''
-                    }`}
-                    onClick={() => {
-                      setGroupBy(opt.value);
-                      setGroupByOpen(false);
-                    }}
-                    role="menuitemradio"
-                    aria-checked={groupBy === opt.value}
-                  >
-                    <span>{opt.label}</span>
-                    {groupBy === opt.value && <span className={styles.checkMark}>✓</span>}
-                  </button>
+      {/* ── Schedule conflicts + task controls (tour target wraps both) ── */}
+      <div data-tour="project-conflict-area">
+        {conflictIds.size > 0 && (
+          <div className={styles.conflictPanel}>
+            <strong>Schedule conflicts</strong>
+            <ul>
+              {tasks
+                .filter((t) => conflictIds.has(t.id))
+                .map((t) => (
+                  <li key={t.id}>
+                    <strong>{t.name}</strong> starts before its dependencies end
+                  </li>
                 ))}
-              </div>
-            )}
+            </ul>
           </div>
+        )}
 
-          <div className={styles.addTaskWrap}>
-            <Button variant="primary" size="sm" onClick={openCreateTask} data-tour="add-task-btn">
-              + Add task <kbd className={styles.kbd}>N</kbd>
-            </Button>
+        {/* ── Task list controls ── */}
+        <div className={styles.taskListHeader}>
+          <h3>Tasks</h3>
+          <div className={styles.taskListControls}>
+            <div className={styles.popoverAnchor} ref={filterBtnRef}>
+              <button
+                className={`${styles.controlBtn} ${filterOpen ? styles.controlBtnActive : ''}`}
+                onClick={() => setFilterOpen((v) => !v)}
+                aria-haspopup="dialog"
+                aria-expanded={filterOpen}
+              >
+                <span className={styles.filterIcon} aria-hidden="true">
+                  ⌗
+                </span>
+                Filter
+                {filterCount > 0 && <span className={styles.filterBadge}>{filterCount}</span>}
+              </button>
+              {filterOpen && (
+                <FilterPopover
+                  filter={filter}
+                  users={users}
+                  onApply={(next) => {
+                    setFilter(next);
+                    setFilterOpen(false);
+                  }}
+                  onReset={() => setFilter(makeDefaultFilter(users))}
+                />
+              )}
+            </div>
+
+            <div className={styles.popoverAnchor} ref={groupByBtnRef}>
+              <button
+                className={`${styles.controlBtn} ${groupByOpen ? styles.controlBtnActive : ''}`}
+                onClick={() => setGroupByOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={groupByOpen}
+              >
+                <span className={styles.groupIcon} aria-hidden="true">
+                  ☰
+                </span>
+                Group: {groupByLabel}
+              </button>
+              {groupByOpen && (
+                <div className={styles.dropdownMenu} role="menu">
+                  {GROUP_BY_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      className={`${styles.dropdownItem} ${
+                        groupBy === opt.value ? styles.dropdownItemActive : ''
+                      }`}
+                      onClick={() => {
+                        setGroupBy(opt.value);
+                        setGroupByOpen(false);
+                      }}
+                      role="menuitemradio"
+                      aria-checked={groupBy === opt.value}
+                    >
+                      <span>{opt.label}</span>
+                      {groupBy === opt.value && <span className={styles.checkMark}>✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.addTaskWrap}>
+              <Button variant="primary" size="sm" onClick={openCreateTask} data-tour="add-task-btn">
+                + Add task <kbd className={styles.kbd}>N</kbd>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

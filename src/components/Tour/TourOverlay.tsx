@@ -58,7 +58,6 @@ export function TourOverlay() {
   const location = useLocation();
 
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
-  const [navigating, setNavigating] = useState(false);
   const pollRef = useRef<number>(0);
   const mountedRef = useRef(true);
 
@@ -76,14 +75,12 @@ export function TourOverlay() {
           if (!mountedRef.current) return;
           const r = el.getBoundingClientRect();
           setTargetRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-          setNavigating(false);
         }, 300);
       } else if (attempts < 40) {
         attempts++;
         pollRef.current = requestAnimationFrame(poll);
       } else {
         setTargetRect(null);
-        setNavigating(false);
       }
     };
 
@@ -108,12 +105,10 @@ export function TourOverlay() {
       : location.pathname === step.route;
 
     if (!onCorrectRoute) {
-      setNavigating(true);
       void navigate(step.routeFn ? step.routeFn() : step.route);
       return;
     }
 
-    setNavigating(false);
     const t = setTimeout(() => measureElement(step.target), 80);
     return () => {
       clearTimeout(t);
@@ -175,14 +170,7 @@ export function TourOverlay() {
   };
 
   const renderCard = () => {
-    if (navigating || !targetRect) {
-      return (
-        <div className={styles.loadingCard}>
-          <div className={styles.loadingSpinner} />
-          <span className={styles.loadingText}>Navigating…</span>
-        </div>
-      );
-    }
+    if (!targetRect) return null;
 
     const { top, left, arrow } = placeCard(targetRect, step.yOffset);
     const arrowClass =

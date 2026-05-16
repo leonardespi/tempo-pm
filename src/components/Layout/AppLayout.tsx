@@ -66,9 +66,9 @@ export function AppLayout({ children }: Props) {
         </div>
         <Toast />
         {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
-        <TourOverlay />
-        <TourTrigger />
       </div>
+      <TourOverlay />
+      <TourTrigger />
     </TourProvider>
   );
 }
