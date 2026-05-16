@@ -20,7 +20,9 @@ export function useDragScroll(ref: RefObject<HTMLElement | null>) {
       dragged = false;
       startX = e.clientX;
       startScrollLeft = node.scrollLeft;
-      node.setPointerCapture(e.pointerId);
+      // Capture deferred to onPointerMove: eagerly capturing here reroutes the
+      // subsequent click event to the scroll container, preventing child onClick
+      // handlers (e.g. SVG cells) from firing on simple clicks.
     }
 
     function onPointerMove(e: PointerEvent) {
@@ -28,6 +30,7 @@ export function useDragScroll(ref: RefObject<HTMLElement | null>) {
       const dx = startX - e.clientX;
       if (!dragged && Math.abs(dx) > DRAG_THRESHOLD) {
         dragged = true;
+        node.setPointerCapture(e.pointerId);
         node.style.cursor = 'grabbing';
         node.style.userSelect = 'none';
       }
